@@ -152,9 +152,13 @@ if has_data:
     fmv = float(fmv_val)
     our_ask = float(ask_val)
     
-    # Thresholds
+    # Thresholds (PSF)
     upper_5 = fmv * 1.05
     upper_10 = fmv * 1.10
+    
+    # Thresholds (Quantum) - NEW
+    upper_5_quant = upper_5 * sqft
+    upper_10_quant = upper_10 * sqft
     
     diff_pct = (our_ask - fmv) / fmv
     
@@ -178,6 +182,8 @@ else:
     diff_pct = 0
     fmv_quant, ask_quant = 0, 0
     fmv, our_ask = 0, 0
+    upper_5, upper_10 = 0, 0
+    upper_5_quant, upper_10_quant = 0, 0
 
 # --- DASHBOARD LAYOUT ---
 display_dev_name = dev_name if dev_name else "Development Name"
@@ -215,7 +221,8 @@ if has_data:
     data_range = data_max - data_min
     padding = data_range * 0.25 
     
-    y_min_limit = -8.0
+    # Increased bottom limit slightly to accommodate extra text lines
+    y_min_limit = -9.0 
     y_max_limit = 5.5
     x_min_limit = data_min - padding
     x_max_limit = data_max + (padding*0.5)
@@ -230,13 +237,13 @@ if has_data:
     # Red (> +10%)
     ax.fill_betweenx(y_shade, upper_10, x_max_limit, color='#e74c3c', alpha=0.15)
 
-    # 2. Zone Labels
+    # 2. Zone Labels (WITH QUANTUM)
     y_labels_5 = -5.0 
-    y_labels_10 = -6.5
+    y_labels_10 = -7.0 # Pushed down slightly
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
-    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF", **style_dict)
-    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
+    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
+    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF\n(${upper_10_quant:,.0f})", **style_dict)
 
     # 3. Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
@@ -251,19 +258,17 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 4. FMV vs Ask Markers (WITH QUANTUM IN BRACKETS)
+    # 4. FMV vs Ask Markers (WITH QUANTUM)
     
     # FMV Marker
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
-    # Updated Label with Quantum
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF\n(${fmv_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     # ASKING Marker
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
-    # Updated Label with Quantum
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF\n(${ask_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
