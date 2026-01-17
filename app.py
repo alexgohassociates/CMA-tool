@@ -177,13 +177,13 @@ if has_data:
     # 3. Market Range Lines (Dumbbell Plot)
     # Transacted (y=2)
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
-    # Label Low/High for Transacted (Placed slightly ABOVE the line)
+    # Label Low/High for Transacted
     ax.text(t_low, 2.2, f"${t_low:,.0f}", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
     ax.text(t_high, 2.2, f"${t_high:,.0f}", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
     # Asking (y=1)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
-    # Label Low/High for Asking (Placed slightly BELOW the line)
+    # Label Low/High for Asking
     ax.text(a_low, 0.8, f"${a_low:,.0f}", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
     ax.text(a_high, 0.8, f"${a_high:,.0f}", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
@@ -196,12 +196,23 @@ if has_data:
     ax.text((data_min + data_max)/2, -3.2, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center',
             bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.5', linewidth=2))
 
-    # 6. FMV vs Ask Markers (Shifted text further up/down to avoid new labels)
-    ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D') 
-    ax.text(fmv, 2.5, f"VALUATION\n${fmv:,.0f}", ha="center", weight="bold", fontsize=11)
+    # 6. FMV vs Ask Markers (VERTICAL DROP LINES)
     
+    # A) Valuation (FMV)
+    # Dotted line from Top (4.5) down to the Marker (2)
+    ax.vlines(fmv, 2, 4.5, linestyles='dotted', colors='black', linewidth=2, zorder=5)
+    # The Marker itself
+    ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D')
+    # The Label at the TOP
+    ax.text(fmv, 4.6, f"VALUATION\n${fmv:,.0f}", ha="center", va="bottom", weight="bold", fontsize=11, color='black')
+
+    # B) Your Ask
+    # Dotted line from Top (4.5) down to the Marker (1)
+    ax.vlines(our_ask, 1, 4.5, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
+    # The Marker itself
     ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
-    ax.text(our_ask, 0.3, f"YOUR ASK\n${our_ask:,.0f}", ha="center", weight="bold", color=status_color, fontsize=13)
+    # The Label at the TOP
+    ax.text(our_ask, 4.6, f"YOUR ASK\n${our_ask:,.0f}", ha="center", va="bottom", weight="bold", fontsize=13, color=status_color)
 
     # 7. Logo on Graph (Top Right)
     if os.path.exists("logo.png"):
@@ -222,7 +233,8 @@ if has_data:
 
     # Final visual tweaks
     ax.axis('off')
-    ax.set_ylim(-4.5, 3.5) 
+    # Increased Top Limit to 5.5 to allow space for top labels
+    ax.set_ylim(-4.5, 5.5) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
     st.pyplot(fig)
