@@ -103,18 +103,19 @@ header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Ty
 ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
          bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
 
-# Value Labels (FIXED STRING ERROR HERE)
+# Value Labels
 ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha='center', weight='bold', fontsize=11)
 ax.text(our_ask, 0.2, f"OUR ASK\n${our_ask:,.0f} PSF", ha='center', weight='bold', color=status_color, fontsize=12)
 
 # Status Title
 ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
-# --- FINAL LOGO FIX: Dedicated Axis for High Clarity ---
+# --- LOGO: Reduced size by 30% ---
 if os.path.exists("logo.png"):
     logo_img = mpimg.imread("logo.png")
-    # This creates a separate box for the logo at the top right [left, bottom, width, height]
-    logo_ax = fig.add_axes([0.72, 0.78, 0.22, 0.15]) 
+    # Reduced width (0.22 -> 0.15) and height (0.15 -> 0.10)
+    # Adjusted position (0.72 -> 0.82) to keep it in the top right corner
+    logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
     logo_ax.imshow(logo_img)
     logo_ax.axis('off')
 
