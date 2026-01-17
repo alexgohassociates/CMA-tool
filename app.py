@@ -72,9 +72,32 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR INPUTS (BLANK DEFAULTS) ---
+# --- CALLBACK FUNCTIONS FOR AUTO-CALCULATION ---
+# These functions run immediately when a user changes a number
+
+def calc_fmv_quantum():
+    # Triggered when FMV PSF changes
+    if st.session_state.sqft and st.session_state.fmv_psf:
+        st.session_state.fmv_quantum = st.session_state.fmv_psf * st.session_state.sqft
+
+def calc_fmv_psf():
+    # Triggered when FMV Quantum changes
+    if st.session_state.sqft and st.session_state.fmv_quantum:
+        st.session_state.fmv_psf = st.session_state.fmv_quantum / st.session_state.sqft
+
+def calc_ask_quantum():
+    # Triggered when Ask PSF changes
+    if st.session_state.sqft and st.session_state.ask_psf:
+        st.session_state.ask_quantum = st.session_state.ask_psf * st.session_state.sqft
+
+def calc_ask_psf():
+    # Triggered when Ask Quantum changes
+    if st.session_state.sqft and st.session_state.ask_quantum:
+        st.session_state.ask_psf = st.session_state.ask_quantum / st.session_state.sqft
+
+# --- SIDEBAR INPUTS ---
 with st.sidebar:
-    # 1. Branding (Logo on Sidebar Top)
+    # 1. Branding
     if os.path.exists("logo.png"):
         st.image("logo.png", use_container_width=True)
     
@@ -82,7 +105,10 @@ with st.sidebar:
     st.markdown("### Property Details")
     dev_name = st.text_input("Development / Address", "")
     unit_no  = st.text_input("Unit", "")
-    sqft     = st.number_input("Size (sqft)", value=None, step=1)
+    
+    # SQFT with key for session state
+    sqft = st.number_input("Size (sqft)", value=None, step=1, key="sqft")
+    
     u_type   = st.text_input("Type", "")
     prepared_by = st.text_input("Agent Name", "")
     
@@ -106,12 +132,29 @@ with st.sidebar:
     else:
         a_low, a_high = 0, 0
     
-    st.markdown("### Valuation")
-    fmv = st.number_input("FMV (PSF)", value=None, step=10)
-    our_ask = st.number_input("Asking Price (PSF)", value=None, step=10)
+    st.markdown("---")
+    st.markdown("### Valuation & Price")
+    
+    # Row 1: FMV Inputs (Side by Side)
+    c_fmv1, c_fmv2 = st.columns(2)
+    with c_fmv1:
+        st.number_input("FMV (PSF)", value=None, step=10.0, key="fmv_psf", on_change=calc_fmv_quantum)
+    with c_fmv2:
+        st.number_input("FMV (Quantum)", value=None, step=1000.0, key="fmv_quantum", on_change=calc_fmv_psf)
+
+    # Row 2: Asking Inputs (Side by Side)
+    c_ask1, c_ask2 = st.columns(2)
+    with c_ask1:
+        st.number_input("Ask (PSF)", value=None, step=10.0, key="ask_psf", on_change=calc_ask_quantum)
+    with c_ask2:
+        st.number_input("Ask (Quantum)", value=None, step=1000.0, key="ask_quantum", on_change=calc_ask_psf)
 
 # --- CALCULATIONS & DATA VALIDATION ---
-required_values = [sqft, fmv, our_ask, t1, t2, a1, a2]
+# Retrieve values from session state for calculations
+fmv_val = st.session_state.fmv_psf
+ask_val = st.session_state.ask_psf
+
+required_values = [sqft, fmv_val, ask_val, t1, t2, a1, a2]
 has_data = all(v is not None and v > 0 for v in required_values)
 
 tz_sg = timezone(timedelta(hours=8))
@@ -119,22 +162,22 @@ today_date = datetime.now(tz_sg).strftime("%d %b %Y")
 
 if has_data:
     sqft = float(sqft)
-    fmv = float(fmv)
-    our_ask = float(our_ask)
+    fmv = float(fmv_val)
+    our_ask = float(ask_val)
     
     # Calculate thresholds for chart logic
     upper_5 = fmv * 1.05
     upper_10 = fmv * 1.10
     
-    # For chart labels (we only use uppers now)
+    # For chart labels
     lower_5 = fmv * 0.95
     lower_10 = fmv * 0.90
     
     diff_pct = (our_ask - fmv) / fmv
     
-    # Quantum Calculations
-    fmv_quantum = fmv * sqft
-    ask_quantum = our_ask * sqft
+    # Quantum Calculations (Directly from inputs to be safe, or recalc)
+    fmv_quantum_display = fmv * sqft
+    ask_quantum_display = our_ask * sqft
     
     # --- UPDATED STATUS LOGIC ---
     if diff_pct <= 0.05:
@@ -153,7 +196,7 @@ else:
     status_text = "Waiting for Data..."
     status_color = "#bdc3c7" # Grey
     diff_pct = 0
-    fmv_quantum, ask_quantum = 0, 0
+    fmv_quantum_display, ask_quantum_display = 0, 0
     fmv, our_ask = 0, 0
 
 # --- DASHBOARD LAYOUT ---
@@ -176,8 +219,8 @@ else:
 
 # Row 2: Quantum Metrics
 c4, c5, c6 = st.columns(3) 
-c4.metric("FMV (Quantum)", f"${fmv_quantum:,.0f}" if has_data else "-")
-c5.metric("Asking (Quantum)", f"${ask_quantum:,.0f}" if has_data else "-")
+c4.metric("FMV (Quantum)", f"${fmv_quantum_display:,.0f}" if has_data else "-")
+c5.metric("Asking (Quantum)", f"${ask_quantum_display:,.0f}" if has_data else "-")
 
 st.divider()
 
