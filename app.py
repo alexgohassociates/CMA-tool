@@ -13,17 +13,34 @@ st.markdown("""
     <style>
     .stApp { background-color: white !important; }
     
-    /* Force Header and Text to Black */
+    /* Main Header Visibility */
     h1 { 
         color: #000000 !important; 
         font-weight: 800 !important; 
-        margin-bottom: 20px !important;
     }
     
-    /* Metric Alignment & Fix for Truncation (...) */
+    /* Sidebar Fixes: Reverting to Grey Boxes & Black Text */
+    section[data-testid="stSidebar"] { 
+        background-color: #f1f3f6 !important; 
+    }
+    section[data-testid="stSidebar"] h3, 
+    section[data-testid="stSidebar"] label {
+        color: #111111 !important;
+        font-weight: 800 !important;
+        font-size: 1rem !important;
+    }
+
+    /* Text Box Styling: Grey background, Black text */
+    .stTextInput input, .stNumberInput input {
+        background-color: #e5e7eb !important; /* Light Grey */
+        color: #000000 !important; /* Solid Black Text */
+        border: 1px solid #cccccc !important;
+        font-weight: 600 !important;
+    }
+
+    /* Metric Styling - Forced Left and High Visibility */
     [data-testid="stMetric"] {
         text-align: left !important;
-        padding-right: 15px !important;
     }
     [data-testid="stMetricLabel"] { 
         color: #444444 !important; 
@@ -34,16 +51,7 @@ st.markdown("""
     [data-testid="stMetricValue"] { 
         color: #000000 !important; 
         font-weight: 900 !important; 
-        font-size: 1.8rem !important; /* Slightly reduced to prevent overflow */
-        overflow: visible !important;
-    }
-
-    /* Sidebar Styling */
-    section[data-testid="stSidebar"] { background-color: #f1f3f6 !important; }
-    section[data-testid="stSidebar"] .stMarkdown p, 
-    section[data-testid="stSidebar"] label {
-        color: #000000 !important;
-        font-weight: 700 !important;
+        font-size: 1.9rem !important;
     }
 
     header, footer {visibility: hidden;}
@@ -94,13 +102,13 @@ today_date = datetime.now(tz_sg).strftime("%d/%m/%Y")
 # --- MAIN DASHBOARD ---
 st.title(f"{dev_name}")
 
-# Updated Column Ratios to prevent "..." (Using 1.5 instead of 1)
-m1, m2, m3, spacer = st.columns([1.5, 1.5, 1.5, 2.5])
+# Expanded Column Ratios to eliminate "..."
+m1, m2, m3, spacer = st.columns([2, 2, 2, 4])
 m1.metric("Est FMV (PSF)", f"${fmv:,.0f} PSF" if fmv else "-")
 m2.metric("Our Asking (PSF)", f"${our_ask:,.0f} PSF" if our_ask else "-")
 m3.metric("Variance", f"{diff_pct:+.1%}" if has_data else "-")
 
-q1, q2, q3, spacer2 = st.columns([1.5, 1.5, 1.5, 2.5])
+q1, q2, q3, spacer2 = st.columns([2, 2, 2, 4])
 q1.metric("Est FMV (Quantum)", f"${(fmv * sqft):,.0f}" if (fmv and valid_sqft) else "-")
 q2.metric("Our Asking (Quantum)", f"${(our_ask * sqft):,.0f}" if (our_ask and valid_sqft) else "-")
 
@@ -116,23 +124,23 @@ if has_data:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Variance Labels (Non-slanted)
+    # Zones Labels
     y_h, y_l = -0.9, -1.3
     ax.text(lower_10, y_h, f"-10%\n${lower_10:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
     ax.text(lower_5, y_l, f"-5%\n${lower_5:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
     ax.text(upper_5, y_h, f"+5%\n${upper_5:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
     ax.text(upper_10, y_l, f"+10%\n${upper_10:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
 
-    # Market Lines
+    # Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
 
     data_min = min(t_low, a_low, lower_10)
     data_max = max(t_high, a_high, upper_10)
 
-    # Adjusted Side labels to stay left
-    ax.text(data_min - 40, 2, 'TRANSACTED PSF', weight='bold', ha='right', va='center', fontsize=11)
-    ax.text(data_min - 40, 1, 'CURRENT ASKING PSF', weight='bold', ha='right', va='center', fontsize=11)
+    # Left-Aligned Graph Titles
+    ax.text(data_min - 45, 2, 'TRANSACTED PSF', weight='bold', ha='right', va='center', fontsize=11)
+    ax.text(data_min - 45, 1, 'CURRENT ASKING PSF', weight='bold', ha='right', va='center', fontsize=11)
 
     # Markers
     ax.scatter(fmv, 2, color='black', s=150, zorder=5)
@@ -140,7 +148,7 @@ if has_data:
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
-    # Details Box (Floating Right)
+    # Details Box
     box_txt = f"Dev: {dev_name}\nUnit: {unit_no}\nSize: {sqft} sqft\nType: {u_type}\nBy: {prepared_by}\nDate: {today_date}"
     ax.text(0.98, 0.82, box_txt, transform=ax.transAxes, ha='right', va='top', fontsize=10, fontweight='bold',
             linespacing=1.6, bbox=dict(facecolor='white', edgecolor='#cccccc', boxstyle='round,pad=0.8'))
@@ -150,7 +158,6 @@ if has_data:
         logo_ax.imshow(mpimg.imread("logo.png"))
         logo_ax.axis('off')
 
-    # Status & PSF Labels
     ax.text((data_min + data_max)/2, 2.7, f"STATUS: {status_text}", fontsize=22, weight='bold', color=status_color, ha='center')
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11)
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color=status_color, fontsize=12)
