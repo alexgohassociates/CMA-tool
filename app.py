@@ -179,14 +179,14 @@ if has_data:
     ax.text(lower_10, y_labels_10, f"-10%\n${lower_10:,.0f} PSF", **style_dict)
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
-    # 3. Market Range Lines (Dumbbell Plot)
-    # Transacted (y=2)
-    ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
+    # 3. Market Range Lines (Dumbbell Plot) - SMALLER MARKERS/LINES
+    # Transacted (y=2). Reduced markersize to 9, linewidth to 6.
+    ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=9, linewidth=6, solid_capstyle='round')
     ax.text(t_low, 2.2, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
     ax.text(t_high, 2.2, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
-    # Asking (y=1)
-    ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
+    # Asking (y=1). Reduced markersize to 9, linewidth to 6.
+    ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=9, linewidth=6, solid_capstyle='round')
     ax.text(a_low, 0.8, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
     ax.text(a_high, 0.8, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
@@ -195,20 +195,18 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. FMV vs Ask Markers (STAGGERED & UNIFORM FONT SIZE)
+    # 5. FMV vs Ask Markers (STAGGERED & SMALLER SIZES)
     
     # Level 1: FMV at y = -1.2
-    # Drop line ends at -1.0
     ax.vlines(fmv, 2, -1.0, linestyles='dotted', colors='black', linewidth=2, zorder=5)
-    ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D')
-    # Label size 11
+    # Reduced size s to 150
+    ax.scatter(fmv, 2, color='black', s=150, zorder=10, marker='D')
     ax.text(fmv, -1.2, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # Level 2: ASKING at y = -2.5 (Staggered below FMV)
-    # Drop line ends at -2.3
+    # Level 2: ASKING at y = -2.5
     ax.vlines(our_ask, 1, -2.3, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
-    ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
-    # Label size changed to 11 (matching FMV)
+    # Reduced size s to 250
+    ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, -2.5, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color=status_color)
 
     # 6. HEADERS & LOGO (Top Layer)
@@ -239,7 +237,6 @@ if has_data:
 
     # Final visual tweaks
     ax.axis('off')
-    # Adjusted limits: Bottom limit is -7.0 to contain the lowest staggered labels
     ax.set_ylim(-7.0, 5.5) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
