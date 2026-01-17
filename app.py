@@ -17,7 +17,7 @@ st.markdown("""
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0rem !important; }
     div[data-testid="stTextSelectionContainer"] > div { margin-bottom: -15px !important; }
 
-    /* Input Box Styling (Light Grey with Black Text) */
+    /* Input Box Styling */
     .stTextInput input, .stNumberInput input {
         background-color: #eeeeee !important;
         color: #000000 !important;
@@ -58,7 +58,7 @@ st.markdown("""
 
 # --- SIDEBAR: BRANDING & INPUTS ---
 with st.sidebar:
-    # Top Branding Section
+    # Logo at the very top
     if os.path.exists("logo.png"):
         st.image("logo.png", use_container_width=True)
     
@@ -82,7 +82,8 @@ with st.sidebar:
     our_ask = st.number_input("Our Asking (PSF)", value=0)
 
 # --- CALCULATIONS ---
-has_data = fmv > 0 and our_ask > 0
+# Check if all critical numeric values are entered
+has_data = all([fmv > 0, our_ask > 0, t_high > 0, a_high > 0])
 
 if has_data:
     lower_5, upper_5 = fmv * 0.95, fmv * 1.05
@@ -118,8 +119,10 @@ st.divider()
 
 # --- PLOTTING / PLACEHOLDER ---
 if not has_data:
-    st.info("📊 **Graph will be generated once Market Values are entered.**")
-    # Small preview area
+    # Updated text as per your request
+    st.info("📊 **Graph will be generated once all values are entered.**")
+    
+    # Small visual spacer
     fig_empty, ax_empty = plt.subplots(figsize=(16, 2))
     ax_empty.axis('off')
     st.pyplot(fig_empty)
@@ -136,7 +139,7 @@ else:
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
 
-    # Text Labels (Black)
+    # Labels (All Black)
     ax.text(t_low, 2.15, f"${int(t_low)} PSF", ha='center', weight='bold', color='black')
     ax.text(t_high, 2.15, f"${int(t_high)} PSF", ha='center', weight='bold', color='black')
     ax.text(a_low, 0.75, f"${int(a_low)} PSF", ha='center', weight='bold', color='black')
@@ -148,24 +151,24 @@ else:
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
-    # Sidebar alignment
-    min_val = min(t_low, a_low, fmv) if any([t_low, a_low, fmv]) else 800
+    # Label Alignment
+    min_val = min(t_low, a_low, fmv)
     label_x = min_val - 180 
     ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', color='black', ha='left', va='center')
     ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', color='black', ha='left', va='center')
 
-    # Info Box & Status
+    # Header Box
     header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}\nPrepared By: {prepared_by}  |  Date: {today_date}"
     ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
              bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
     
-    # Bottom labels adjusted to never overlap
+    # Bottom labels (Our Ask lower than FMV to prevent overlap)
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11, color='black')
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color='black', fontsize=12)
 
     ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
-    # Chart Logo (Top Right)
+    # Chart Logo
     if os.path.exists("logo.png"):
         logo_img = mpimg.imread("logo.png")
         logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
