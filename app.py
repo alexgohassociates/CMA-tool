@@ -36,29 +36,32 @@ with st.sidebar:
     a_low  = st.number_input("Min Asking PSF", value=1050)
     a_high = st.number_input("Max Asking PSF", value=1300)
 
-# --- CALCULATIONS ---
+# --- CALCULATIONS & NEUTRAL LABELS ---
 lower_5, upper_5 = fmv * 0.95, fmv * 1.05
 lower_10, upper_10 = fmv * 0.90, fmv * 1.10
 diff_pct = (my_ask - fmv) / fmv
 
 if abs(diff_pct) <= 0.05:
-    status_text, status_color = "GOOD VALUE", "#2ecc71"
+    status_text = "WITHIN 5% OF FMV"
+    status_color = "#2ecc71" 
 elif abs(diff_pct) <= 0.10:
-    status_text, status_color = "PREMIUM", "#f1c40f"
+    status_text = "BETWEEN 5-10% OF FMV"
+    status_color = "#f1c40f"
 else:
-    status_text, status_color = "HIGH PREMIUM", "#e74c3c"
+    status_text = "MORE THAN 10% OF FMV"
+    status_color = "#e74c3c"
 
 tz_sg = timezone(timedelta(hours=8))
 gen_time = datetime.now(tz_sg).strftime("%d %b %Y, %H:%M (GMT+8)")
 
 # --- MAIN DASHBOARD ---
-st.title(f"🏢 {dev_name} | Market Positioning Report")
+st.title(f"🏢 {dev_name} | Market Analysis")
 st.caption(f"Unit: {unit_no} • {sqft} sqft • {u_type} | Data as of {gen_time}")
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Asking PSF", f"${my_ask:,.0f}")
 m2.metric("Est. FMV", f"${fmv:,.0f}")
-m3.metric("Premium %", f"{diff_pct:+.1%}")
+m3.metric("Price Variance", f"{diff_pct:+.1%}")
 m4.metric("Total Asking", f"${(my_ask * sqft):,.0f}")
 
 st.divider()
@@ -67,60 +70,65 @@ st.divider()
 fig, ax = plt.subplots(figsize=(16, 8))
 fig.patch.set_facecolor('#f8f9fa')
 
-# Three-Tier Background Zones
 ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
 ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)
 ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-# Range Lines
 ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', linewidth=6)
 ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', linewidth=6)
 
-# PSF Values at the start and end of range
 ax.text(t_low, 2.15, f"${int(t_low)}", ha='center', weight='bold', color='#1f77b4')
 ax.text(t_high, 2.15, f"${int(t_high)}", ha='center', weight='bold', color='#1f77b4')
 ax.text(a_low, 0.75, f"${int(a_low)}", ha='center', weight='bold', color='#34495e')
 ax.text(a_high, 0.75, f"${int(a_high)}", ha='center', weight='bold', color='#34495e')
 
-# Indicators
 ax.scatter(fmv, 2, color='black', s=180, zorder=5)
 ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
 ax.scatter(my_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
 ax.plot([my_ask, my_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
 
-# Left Aligned Labels (Positioned relative to the minimum overall X value)
 min_plot_x = min(t_low, a_low, fmv, lower_10)
 label_x = min_plot_x - 120 
 ax.text(label_x, 2, 'TRANSACTED', weight='bold', color='#2980b9', ha='left', va='center')
 ax.text(label_x, 1, 'MARKET ASKING', weight='bold', color='#2c3e50', ha='left', va='center')
 
-# Header for Download (Metadata)
 header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}"
 ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
          bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
 
-# Values Labels
 ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f}', ha='center', weight='bold', fontsize=11)
 ax.text(my_ask, 0.2, f'MY ASK\n${my_ask:,.0f}', ha='center', weight='bold', color=status_color, fontsize=12)
 
-# Positioning Title
-ax.text((t_low + t_high)/2, 2.7, f"POSITIONING: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
+ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
 ax.axis('off')
-ax.set_ylim(0, 3.7) # Height adjusted for header
+ax.set_ylim(0, 3.7) 
 ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 80)
 
-# Render Plot
 st.pyplot(fig)
 
-# --- DOWNLOAD BUTTON ---
-buf = io.BytesIO()
-fig.savefig(buf, format="png", bbox_inches='tight', dpi=300)
+# --- DOWNLOAD SECTION (PNG & PDF) ---
+st.sidebar.divider()
+st.sidebar.subheader("Download Options")
+
+# PNG Export
+buf_png = io.BytesIO()
+fig.savefig(buf_png, format="png", bbox_inches='tight', dpi=300)
 st.sidebar.download_button(
-    label="📥 Download Report as Image",
-    data=buf.getvalue(),
-    file_name=f"Report_{dev_name}_{unit_no}.png",
+    label="📥 Download as Image (PNG)",
+    data=buf_png.getvalue(),
+    file_name=f"Analysis_{dev_name}_{unit_no}.png",
     mime="image/png"
 )
 
-st.success(f"Analysis complete for {dev_name} {unit_no}.")
+# PDF Export
+buf_pdf = io.BytesIO()
+fig.savefig(buf_pdf, format="pdf", bbox_inches='tight')
+st.sidebar.download_button(
+    label="📄 Download as PDF Report",
+    data=buf_pdf.getvalue(),
+    file_name=f"Analysis_{dev_name}_{unit_no}.pdf",
+    mime="application/pdf"
+)
+
+st.success(f"Analysis complete. File ready for export.")
