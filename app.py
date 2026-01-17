@@ -15,7 +15,6 @@ st.markdown("""
     
     /* COMPACT SIDEBAR */
     [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0rem !important; }
-    div[data-testid="stTextSelectionContainer"] > div { margin-bottom: -15px !important; }
 
     /* Input Box Styling */
     .stTextInput input, .stNumberInput input {
@@ -130,12 +129,11 @@ else:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Zone Range Labels - Moved Lower and Cleaned Up
-    # Use y=-0.8 for more clearance
-    ax.text(lower_10, -0.8, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(lower_5, -0.8, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(upper_5, -0.8, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(upper_10, -0.8, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    # Zone Labels (Moved Lower)
+    ax.text(lower_10, -0.9, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(lower_5, -0.9, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_5, -0.9, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_10, -0.9, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
 
     # Data Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
@@ -156,24 +154,39 @@ else:
     ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', ha='left', va='center')
     ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', ha='left', va='center')
 
-    # Header and Status
-    header_text = f"Dev/Address: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}\nPrepared By: {prepared_by}  |  Date: {today_date}"
-    ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
-             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+    # --- TOP RIGHT BRANDING SECTION ---
+    # Alignment logic: Move the info box to the right, align with Logo
+    chart_right_bound = max(t_high, a_high, fmv, upper_10)
     
+    # Left Aligned Text with extra spacing (tabs/spaces)
+    header_info = (
+        f"Dev/Address:  {dev_name}\n"
+        f"Unit Number:   {unit_no}\n"
+        f"Unit Size:          {sqft} sqft\n"
+        f"Unit Type:         {u_type}\n"
+        f"Prepared By:     {prepared_by}\n"
+        f"Date:                   {today_date}"
+    )
+    
+    # Positioned at the top right, aligned with logo
+    ax.text(chart_right_bound + 100, 3.4, header_info, ha='left', va='top', fontsize=10, fontweight='bold', 
+             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.8', alpha=0.8))
+    
+    if os.path.exists("logo.png"):
+        logo_img = mpimg.imread("logo.png")
+        # logo_ax adjusted to sit above/beside the info box
+        logo_ax = fig.add_axes([0.78, 0.82, 0.12, 0.08]) 
+        logo_ax.imshow(logo_img)
+        logo_ax.axis('off')
+
+    # FMV and Status Text
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11)
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color=status_color, fontsize=12)
     ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
-    if os.path.exists("logo.png"):
-        logo_img = mpimg.imread("logo.png")
-        logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
-        logo_ax.imshow(logo_img)
-        logo_ax.axis('off')
-
     ax.axis('off')
-    ax.set_ylim(-1.2, 3.8) # Extended y-limit slightly to fit lower labels
-    ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 120)
+    ax.set_ylim(-1.3, 3.8) 
+    ax.set_xlim(label_x - 20, chart_right_bound + 450) # Added right padding for the box
 
     st.pyplot(fig)
 
