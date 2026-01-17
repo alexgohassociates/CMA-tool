@@ -88,16 +88,16 @@ ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
 ax.scatter(my_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
 ax.plot([my_ask, my_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
 
-# Zone Boundaries Labels (The 5% and 10% markers)
+# Zone Boundaries Labels
 boundary_y = -0.3
-ax.text(lower_10, boundary_y, f"-10%\n${int(lower_10)}", ha='center', fontsize=9, color='grey')
-ax.text(lower_5, boundary_y, f"-5%\n${int(lower_5)}", ha='center', fontsize=9, color='grey')
-ax.text(upper_5, boundary_y, f"+5%\n${int(upper_5)}", ha='center', fontsize=9, color='grey')
-ax.text(upper_10, boundary_y, f"+10%\n${int(upper_10)}", ha='center', fontsize=9, color='grey')
+ax.text(lower_10, boundary_y, f"-10%\n${int(lower_10)} PSF", ha='center', fontsize=9, color='grey')
+ax.text(lower_5, boundary_y, f"-5%\n${int(lower_5)} PSF", ha='center', fontsize=9, color='grey')
+ax.text(upper_5, boundary_y, f"+5%\n${int(upper_5)} PSF", ha='center', fontsize=9, color='grey')
+ax.text(upper_10, boundary_y, f"+10%\n${int(upper_10)} PSF", ha='center', fontsize=9, color='grey')
 
 # Left Aligned Labels
 min_plot_x = min(t_low, a_low, fmv, lower_10)
-label_x = min_plot_x - 140 
+label_x = min_plot_x - 180 
 ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', color='#2980b9', ha='left', va='center')
 ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', color='#2c3e50', ha='left', va='center')
 
@@ -107,4 +107,28 @@ ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweig
          bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
 
 # Value Labels
-ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f} PSF', ha='
+ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f} PSF', ha='center', weight='bold', fontsize=11)
+ax.text(my_ask, 0.2, f'MY ASK\n${my_ask:,.0f} PSF', ha='center', weight='bold', color=status_color, fontsize=12)
+
+# Positioning Title
+ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
+
+ax.axis('off')
+ax.set_ylim(-0.6, 3.7) 
+ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 120)
+
+st.pyplot(fig)
+
+# --- DOWNLOAD SECTION ---
+st.sidebar.divider()
+st.sidebar.subheader("Download Options")
+
+buf_png = io.BytesIO()
+fig.savefig(buf_png, format="png", bbox_inches='tight', dpi=300)
+st.sidebar.download_button(label="📥 Download as Image (PNG)", data=buf_png.getvalue(), file_name=f"Analysis_{dev_name}.png", mime="image/png")
+
+buf_pdf = io.BytesIO()
+fig.savefig(buf_pdf, format="pdf", bbox_inches='tight')
+st.sidebar.download_button(label="📄 Download as PDF Report", data=buf_pdf.getvalue(), file_name=f"Analysis_{dev_name}.pdf", mime="application/pdf")
+
+st.success(f"Analysis complete for {dev_name}. Everything is ready for export!")
