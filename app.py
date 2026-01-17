@@ -67,34 +67,6 @@ st.markdown("""
         margin-bottom: 1rem !important;
     }
 
-    /* 8. CUSTOM FULLSCREEN BUTTON STYLING (Aggressive Override) */
-    
-    /* Force the button container to be white with a grey border */
-    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"] {
-        background-color: #ffffff !important;
-        border: 1px solid #d1d5db !important;
-        border-radius: 4px !important;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
-        color: #000000 !important; /* Sets text color if any */
-        transition: all 0.2s ease-in-out !important;
-    }
-
-    /* Force the SVG icon (and its path directly) to be black */
-    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"] svg,
-    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"] svg path {
-        fill: #000000 !important;
-        stroke: #000000 !important;
-        color: #000000 !important;
-        /* Ensure no weird filters (like invert) are applied by Streamlit */
-        filter: none !important; 
-    }
-
-    /* Hover state for the button: slightly darker grey background */
-    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"]:hover {
-        background-color: #f0f2f6 !important;
-        border-color: #9ca3af !important;
-    }
-
     /* Hide Streamlit Header/Footer */
     header, footer {visibility: hidden;}
     </style>
@@ -188,14 +160,24 @@ if has_data:
     data_max = max(all_values)
     data_range = data_max - data_min
     padding = data_range * 0.25 
+    
+    # Limits for plotting
+    y_min_limit = -8.0
+    y_max_limit = 5.5
 
-    # 1. Shaded Zones
-    ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)  # Yellow zone
-    ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.15)  # Green zone
-    ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)  # Yellow zone
+    # 1. Shaded Zones - RESTRICTED HEIGHT (fill_betweenx)
+    # y coordinates: From bottom limit (-8.0) up to just below the 0-line (-0.5)
+    # This keeps the shading ONLY in the valuation section, leaving the top white.
+    y_shade = [y_min_limit, -0.5] 
+    
+    # Yellow Zone (Left) -10% to -5%
+    ax.fill_betweenx(y_shade, lower_10, lower_5, color='#f1c40f', alpha=0.1)
+    # Green Zone (Middle) -5% to +5%
+    ax.fill_betweenx(y_shade, lower_5, upper_5, color='#2ecc71', alpha=0.15)
+    # Yellow Zone (Right) +5% to +10%
+    ax.fill_betweenx(y_shade, upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
     # 2. Zone Labels (Level 3 & 4)
-    # y = -5.0 and y = -6.5
     y_labels_5 = -5.0 
     y_labels_10 = -6.5
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
@@ -207,12 +189,12 @@ if has_data:
     ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
     # 3. Market Range Lines (Dumbbell Plot)
-    # Transacted (y=2). Labels moved UP to 2.45 to clear the Diamond.
+    # Transacted (y=2). Labels moved UP to 2.45
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
     ax.text(t_low, 2.45, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
     ax.text(t_high, 2.45, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
-    # Asking (y=1). Labels moved DOWN to 0.55 to clear the Circle.
+    # Asking (y=1). Labels moved DOWN to 0.55
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
     ax.text(a_low, 0.55, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
     ax.text(a_high, 0.55, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
@@ -256,7 +238,7 @@ if has_data:
 
     # Final visual tweaks
     ax.axis('off')
-    ax.set_ylim(-8.0, 5.5) 
+    ax.set_ylim(y_min_limit, y_max_limit) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
     st.pyplot(fig)
