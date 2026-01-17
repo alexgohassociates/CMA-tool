@@ -1,5 +1,6 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+from matplotlib.patches import Circle # Import needed for the new dot
 import io
 import os
 from datetime import datetime, timedelta, timezone
@@ -220,18 +221,22 @@ if has_data:
             pass 
 
     # B. Footer/Details Info (Top Left of Figure)
-    # Moved x from 0.02 to 0.03 to prevent cutoff
     info_str = (f"{dev_name} ({unit_no}) | {sqft:,} sqft | {u_type}\n"
                 f"Analysis by {prepared_by} | {today_date}")
     
     ax.text(0.03, 0.95, info_str, transform=fig.transFigure, ha='left', va='top', fontsize=12, fontweight='bold',
             color='#555555', bbox=dict(facecolor='#f8f9fa', edgecolor='none', boxstyle='round,pad=0.5'))
 
-    # C. Status Banner (Top Left, BELOW Details Info) - SMALLER SIZE
-    # Moved x from 0.02 to 0.03 to prevent border cutoff
-    ax.text(0.03, 0.87, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='top', fontsize=19, 
-            weight='bold', color='black',
-            bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.4', linewidth=2))
+    # C. Status Banner (Top Left, BELOW Details Info) - UPDATED: DOT + NO BORDER
+    # 1. Add Colored Dot (Circle Patch)
+    # Coordinates (x,y) are in figure fraction. Radius is small.
+    status_dot = Circle((0.035, 0.855), 0.008, transform=fig.transFigure, color=status_color, clip_on=False, zorder=20)
+    fig.artists.append(status_dot)
+
+    # 2. Add Text next to it (No bbox anymore)
+    # Shifted x slightly right to 0.055 to sit next to the dot
+    ax.text(0.055, 0.87, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='top', fontsize=19, 
+            weight='bold', color='black')
 
     # Final visual tweaks
     ax.axis('off')
