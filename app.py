@@ -37,7 +37,7 @@ st.markdown("""
     /* 5. Sidebar Labels -> Black */
     [data-testid="stSidebar"] label {
         color: #000000 !important;
-        margin-bottom: 2px !important; /* Tighten label to input */
+        margin-bottom: 2px !important;
     }
 
     /* 6. DOWNLOAD BUTTON -> Match Input Fields */
@@ -54,17 +54,14 @@ st.markdown("""
     }
 
     /* 7. EQUAL SPACING FIX */
-    /* Remove default Streamlit vertical gaps and set our own */
     [data-testid="stSidebar"] .stElementContainer {
-        margin-bottom: 0.8rem !important; /* Standard gap between every item */
+        margin-bottom: 0.8rem !important;
     }
-    /* Tighten up the headers so they don't have huge gaps above them */
     [data-testid="stSidebar"] h3 {
         padding-top: 0.5rem !important;
         padding-bottom: 0.2rem !important;
         margin-bottom: 0 !important;
     }
-    /* Adjust the divider line to float exactly in the middle of the gap */
     [data-testid="stSidebar"] hr {
         margin-top: 1rem !important;
         margin-bottom: 1rem !important;
@@ -157,7 +154,7 @@ if has_data:
     fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
     fig.patch.set_facecolor('white')
     
-    # Dynamic limits to prevent text cutoff
+    # Dynamic limits
     all_values = [t_low, t_high, a_low, a_high, fmv, our_ask, lower_10, upper_10]
     data_min = min(all_values)
     data_max = max(all_values)
@@ -186,8 +183,9 @@ if has_data:
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. The "Status" Banner
-    ax.text((data_min + data_max)/2, 3.5, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center',
+    # 5. The "Status" Banner (MOVED TO BOTTOM)
+    # y = -3.2 places it cleanly below the Zone Labels
+    ax.text((data_min + data_max)/2, -3.2, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center',
             bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.5', linewidth=2))
 
     # 6. FMV vs Ask Markers
@@ -197,7 +195,7 @@ if has_data:
     ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
     ax.text(our_ask, 0.4, f"YOUR ASK\n${our_ask:,.0f}", ha="center", weight="bold", color=status_color, fontsize=13)
 
-    # 7. Logo on Graph
+    # 7. Logo on Graph (Top Right)
     if os.path.exists("logo.png"):
         try:
             logo_img = Image.open("logo.png")
@@ -216,7 +214,8 @@ if has_data:
 
     # Final visual tweaks
     ax.axis('off')
-    ax.set_ylim(-3.0, 5.0)
+    # Adjusted limits: Shifted view DOWN to accommodate bottom status
+    ax.set_ylim(-4.5, 3.5) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
     st.pyplot(fig)
