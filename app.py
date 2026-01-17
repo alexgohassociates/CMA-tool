@@ -27,7 +27,7 @@ with st.sidebar:
     st.divider()
     st.title("💰 Pricing Data")
     fmv    = st.number_input("Fair Market Value (PSF)", value=1150)
-    my_ask = st.number_input("Your Asking (PSF)", value=1250)
+    my_ask = st.number_input("Our Asking (PSF)", value=1250)
     
     st.divider()
     st.title("📊 Market Range")
@@ -108,7 +108,7 @@ ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweig
 
 # Value Labels
 ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f} PSF', ha='center', weight='bold', fontsize=11)
-ax.text(my_ask, 0.2, f'MY ASK\n${my_ask:,.0f} PSF', ha='center', weight='bold', color=status_color, fontsize=12)
+ax.text(my_ask, 0.2, f'OUR ASK\n${my_ask:,.0f} PSF', ha='center', weight='bold', color=status_color, fontsize=12)
 
 # Positioning Title
 ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
@@ -131,4 +131,4 @@ buf_pdf = io.BytesIO()
 fig.savefig(buf_pdf, format="pdf", bbox_inches='tight')
 st.sidebar.download_button(label="📄 Download as PDF Report", data=buf_pdf.getvalue(), file_name=f"Analysis_{dev_name}.pdf", mime="application/pdf")
 
-st.success(f"Analysis complete for {dev_name}. Everything is ready for export!")
+st.success(f"Analysis complete for {dev_name}. Ready for client presentation!")
