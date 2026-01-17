@@ -67,24 +67,32 @@ st.markdown("""
         margin-bottom: 1rem !important;
     }
 
-    /* 8. CUSTOM FULLSCREEN BUTTON STYLING (White Box, Black Arrows) */
-    /* Target the fullscreen button container on hover */
-    button[data-testid="stStyledFullScreenButton"] {
-        background-color: #ffffff !important; /* White background */
-        border: 1px solid #e0e0e0 !important; /* Subtle grey border so it's visible */
-        box-shadow: 0px 2px 4px rgba(0,0,0,0.1) !important; /* Slight shadow for depth */
+    /* 8. CUSTOM FULLSCREEN BUTTON STYLING (Aggressive Override) */
+    
+    /* Force the button container to be white with a grey border */
+    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"] {
+        background-color: #ffffff !important;
+        border: 1px solid #d1d5db !important;
         border-radius: 4px !important;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1) !important;
+        color: #000000 !important; /* Sets text color if any */
+        transition: all 0.2s ease-in-out !important;
     }
-    /* Target the SVG icon inside to make it black */
-    button[data-testid="stStyledFullScreenButton"] svg {
-        fill: #000000 !important; /* Black fill */
-        stroke: #000000 !important; /* Black outline */
+
+    /* Force the SVG icon (and its path directly) to be black */
+    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"] svg,
+    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"] svg path {
+        fill: #000000 !important;
+        stroke: #000000 !important;
         color: #000000 !important;
+        /* Ensure no weird filters (like invert) are applied by Streamlit */
+        filter: none !important; 
     }
-    /* Hover state for the new white button */
-    button[data-testid="stStyledFullScreenButton"]:hover {
-        background-color: #f0f2f6 !important; /* Light grey on hover */
-        border-color: #d1d5db !important;
+
+    /* Hover state for the button: slightly darker grey background */
+    [data-testid="stElementContainer"] button[data-testid="stStyledFullScreenButton"]:hover {
+        background-color: #f0f2f6 !important;
+        border-color: #9ca3af !important;
     }
 
     /* Hide Streamlit Header/Footer */
