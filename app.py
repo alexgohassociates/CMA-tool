@@ -234,27 +234,28 @@ if has_data:
     
     st.pyplot(fig)
 
-# --- SIDEBAR DOWNLOAD BUTTON (WITH CUSTOM FILENAME) ---
+# --- SIDEBAR DOWNLOAD BUTTON (PDF FORMAT) ---
 with st.sidebar:
     st.markdown("---")
     if fig is not None:
-        # Generate safe filename: "DevName-Unit-Size-Date-Agent.png"
-        # 1. Format date as dd-mm-yyyy (safe for filenames)
+        # Generate safe filename: "DevName-Unit-Size-Date-Agent.pdf"
         filename_date = datetime.now(tz_sg).strftime("%d-%m-%Y")
         
-        # 2. Sanitize inputs (replace slashes with dashes)
+        # Sanitize inputs
         safe_dev = dev_name.replace("/", "-").replace("\\", "-")
         safe_unit = unit_no.replace("/", "-")
         
-        # 3. Construct filename
-        final_filename = f"{safe_dev}-{safe_unit}-{sqft}-{filename_date}-{prepared_by}.png"
+        # Construct filename with .pdf extension
+        final_filename = f"{safe_dev}-{safe_unit}-{sqft}-{filename_date}-{prepared_by}.pdf"
 
-        img_buffer = io.BytesIO()
-        fig.savefig(img_buffer, format='png', bbox_inches='tight', dpi=300)
+        # Save to BytesIO buffer as PDF
+        pdf_buffer = io.BytesIO()
+        fig.savefig(pdf_buffer, format='pdf', bbox_inches='tight', dpi=300)
+        
         st.download_button(
-            label="📥 Download Chart for PDF",
-            data=img_buffer,
+            label="📥 Download Analysis as PDF",
+            data=pdf_buffer,
             file_name=final_filename,
-            mime="image/png",
+            mime="application/pdf",
             use_container_width=True
         )
