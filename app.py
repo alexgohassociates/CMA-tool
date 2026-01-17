@@ -72,7 +72,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR INPUTS ---
+# --- SIDEBAR INPUTS (BLANK DEFAULTS) ---
 with st.sidebar:
     # 1. Branding (Logo on Sidebar Top)
     if os.path.exists("logo.png"):
@@ -80,32 +80,55 @@ with st.sidebar:
     
     # 2. Property Details
     st.markdown("### Property Details")
-    dev_name = st.text_input("Development / Address", "Kent Ridge Hill Residences")
-    unit_no  = st.text_input("Unit", "02-57")
-    sqft     = st.number_input("Size (sqft)", value=1079)
-    u_type   = st.text_input("Type", "3 Bedroom Premium")
-    prepared_by = st.text_input("Agent Name", "James Koh")
+    # Empty strings for text inputs
+    dev_name = st.text_input("Development / Address", "")
+    unit_no  = st.text_input("Unit", "")
+    # value=None allows the box to be empty for number_input
+    sqft     = st.number_input("Size (sqft)", value=None, step=1)
+    u_type   = st.text_input("Type", "")
+    prepared_by = st.text_input("Agent Name", "")
     
     st.markdown("---")
     
     # 3. Market Data
     st.markdown("### Market Data")
-    t1, t2 = st.number_input("Lowest Transacted (PSF)", value=1000), st.number_input("Highest Transacted (PSF)", value=1200)
-    t_low, t_high = min(t1, t2), max(t1, t2)
+    # value=None for blank number inputs
+    t1 = st.number_input("Lowest Transacted (PSF)", value=None, step=10)
+    t2 = st.number_input("Highest Transacted (PSF)", value=None, step=10)
     
-    a1, a2 = st.number_input("Lowest Asking (PSF)", value=1100), st.number_input("Highest Asking (PSF)", value=1300)
-    a_low, a_high = min(a1, a2), max(a1, a2)
+    # Logic to handle None values safely
+    if t1 is not None and t2 is not None:
+        t_low, t_high = min(t1, t2), max(t1, t2)
+    else:
+        t_low, t_high = 0, 0
+    
+    a1 = st.number_input("Lowest Asking (PSF)", value=None, step=10)
+    a2 = st.number_input("Highest Asking (PSF)", value=None, step=10)
+    
+    if a1 is not None and a2 is not None:
+        a_low, a_high = min(a1, a2), max(a1, a2)
+    else:
+        a_low, a_high = 0, 0
     
     st.markdown("### Valuation")
-    fmv = st.number_input("FMV (PSF)", value=1050)
-    our_ask = st.number_input("Asking Price (PSF)", value=1100)
+    fmv = st.number_input("FMV (PSF)", value=None, step=10)
+    our_ask = st.number_input("Asking Price (PSF)", value=None, step=10)
 
-# --- CALCULATIONS ---
-has_data = all(v is not None and v > 0 for v in [fmv, our_ask, t_high, a_high])
+# --- CALCULATIONS & DATA VALIDATION ---
+# Ensure all required numeric fields have valid data (>0)
+# We check if variables are not None first
+required_values = [sqft, fmv, our_ask, t1, t2, a1, a2]
+has_data = all(v is not None and v > 0 for v in required_values)
+
 tz_sg = timezone(timedelta(hours=8))
 today_date = datetime.now(tz_sg).strftime("%d %b %Y")
 
 if has_data:
+    # Safe to convert since we checked for None
+    sqft = float(sqft)
+    fmv = float(fmv)
+    our_ask = float(our_ask)
+    
     lower_5, upper_5 = fmv * 0.95, fmv * 1.05
     lower_10, upper_10 = fmv * 0.90, fmv * 1.10
     diff_pct = (our_ask - fmv) / fmv
@@ -125,24 +148,36 @@ if has_data:
         status_text = "Greater than 10%"
         status_color = "#e74c3c" # Red
 else:
-    status_text, status_color, diff_pct = "Waiting for Data...", "#7f8c8d", 0
+    # Default State when fields are empty
+    status_text = "Waiting for Data..."
+    status_color = "#bdc3c7" # Grey
+    diff_pct = 0
     fmv_quantum, ask_quantum = 0, 0
+    fmv, our_ask = 0, 0 # Avoid UnboundLocalError for display
 
 # --- DASHBOARD LAYOUT ---
-# Title
-st.title(f"{dev_name}")
-st.caption(f"Unit: {unit_no} | Size: {sqft:,} sqft | Type: {u_type}")
+# Title (Show placeholders if empty)
+display_dev_name = dev_name if dev_name else "Development Name"
+display_unit_no = unit_no if unit_no else "-"
+display_sqft = f"{int(sqft):,}" if (sqft and sqft > 0) else "-"
+display_u_type = u_type if u_type else "-"
+
+st.title(f"{display_dev_name}")
+st.caption(f"Unit: {display_unit_no} | Size: {display_sqft} sqft | Type: {display_u_type}")
 
 # Row 1: PSF Metrics & Variance
 c1, c2, c3 = st.columns(3)
-c1.metric("FMV (PSF)", f"${fmv:,.0f} psf")
-c2.metric("Asking (PSF)", f"${our_ask:,.0f} psf")
-c3.metric("Variance", f"{diff_pct:+.1%}", delta_color="inverse")
+c1.metric("FMV (PSF)", f"${fmv:,.0f} psf" if has_data else "-")
+c2.metric("Asking (PSF)", f"${our_ask:,.0f} psf" if has_data else "-")
+if has_data:
+    c3.metric("Variance", f"{diff_pct:+.1%}", delta_color="inverse")
+else:
+    c3.metric("Variance", "-")
 
 # Row 2: Quantum Metrics
 c4, c5, c6 = st.columns(3) 
-c4.metric("FMV (Quantum)", f"${fmv_quantum:,.0f}")
-c5.metric("Asking (Quantum)", f"${ask_quantum:,.0f}")
+c4.metric("FMV (Quantum)", f"${fmv_quantum:,.0f}" if has_data else "-")
+c5.metric("Asking (Quantum)", f"${ask_quantum:,.0f}" if has_data else "-")
 
 st.divider()
 
@@ -217,8 +252,11 @@ if has_data:
             pass 
 
     # Footer/Details Info
-    info_str = (f"{dev_name} ({unit_no}) | {sqft:,} sqft | {u_type}\n"
-                f"Analysis by {prepared_by} | {today_date}")
+    # Handle potentially blank fields for display
+    safe_prepared_by = prepared_by if prepared_by else "-"
+    
+    info_str = (f"{display_dev_name} ({display_unit_no}) | {display_sqft} sqft | {display_u_type}\n"
+                f"Analysis by {safe_prepared_by} | {today_date}")
     ax.text(0.03, 0.91, info_str, transform=fig.transFigure, ha='left', va='center', fontsize=10, fontweight='bold',
             color='#555555', bbox=dict(facecolor='#f8f9fa', edgecolor='none', boxstyle='round,pad=0.5'))
 
@@ -233,6 +271,10 @@ if has_data:
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
     st.pyplot(fig)
+elif not has_data:
+    # Optional: Friendly message when empty
+    st.info("👈 Please enter property details and market data in the sidebar to generate the analysis.")
+
 
 # --- SIDEBAR DOWNLOAD BUTTON (PDF FORMAT) ---
 with st.sidebar:
@@ -241,12 +283,14 @@ with st.sidebar:
         # Generate safe filename: "DevName-Unit-Size-Date-Agent.pdf"
         filename_date = datetime.now(tz_sg).strftime("%d-%m-%Y")
         
-        # Sanitize inputs
-        safe_dev = dev_name.replace("/", "-").replace("\\", "-")
-        safe_unit = unit_no.replace("/", "-")
+        # Sanitize inputs (handle empty strings safely)
+        safe_dev = (dev_name if dev_name else "Property").replace("/", "-").replace("\\", "-")
+        safe_unit = (unit_no if unit_no else "Unit").replace("/", "-")
+        safe_sqft = str(int(sqft)) if (sqft and sqft > 0) else "0"
+        safe_agent = prepared_by if prepared_by else "Agent"
         
         # Construct filename with .pdf extension
-        final_filename = f"{safe_dev}-{safe_unit}-{sqft}-{filename_date}-{prepared_by}.pdf"
+        final_filename = f"{safe_dev}-{safe_unit}-{safe_sqft}-{filename_date}-{safe_agent}.pdf"
 
         # Save to BytesIO buffer as PDF
         pdf_buffer = io.BytesIO()
