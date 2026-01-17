@@ -166,47 +166,49 @@ if has_data:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.15)  # Green zone
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)  # Yellow zone
 
-    # 2. Zone Labels - MOVED TO BOTTOM (Below Valuation/Ask)
-    # 5% labels
-    y_labels = -3.5
+    # 2. Zone Labels - MOVED FURTHER DOWN + ADDED PSF
+    # 5% labels moved from -3.5 to -4.5
+    y_labels_5 = -4.5 
+    # 10% labels moved down to -5.7
+    y_labels_10 = -5.7
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
-    ax.text(lower_5, y_labels, f"-5%\n${lower_5:,.0f}", **style_dict)
-    ax.text(upper_5, y_labels, f"+5%\n${upper_5:,.0f}", **style_dict)
     
-    # 10% labels (Slightly lower)
-    ax.text(lower_10, y_labels - 0.7, f"-10%\n${lower_10:,.0f}", **style_dict)
-    ax.text(upper_10, y_labels - 0.7, f"+10%\n${upper_10:,.0f}", **style_dict)
+    ax.text(lower_5, y_labels_5, f"-5%\n${lower_5:,.0f} PSF", **style_dict)
+    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF", **style_dict)
+    
+    ax.text(lower_10, y_labels_10, f"-10%\n${lower_10:,.0f} PSF", **style_dict)
+    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF", **style_dict)
 
-    # 3. Market Range Lines (Dumbbell Plot)
+    # 3. Market Range Lines (Dumbbell Plot) + ADDED PSF
     # Transacted (y=2)
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
-    ax.text(t_low, 2.2, f"${t_low:,.0f}", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
-    ax.text(t_high, 2.2, f"${t_high:,.0f}", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_low, 2.2, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_high, 2.2, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
     # Asking (y=1)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=12, linewidth=8, solid_capstyle='round')
-    ax.text(a_low, 0.8, f"${a_low:,.0f}", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
-    ax.text(a_high, 0.8, f"${a_high:,.0f}", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_low, 0.8, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_high, 0.8, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
     # 4. Labels for Lines
     text_x_pos = data_min - (data_range * 0.05) 
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
-    # 5. FMV vs Ask Markers (LABELS IN MIDDLE)
-    # A) Valuation (FMV)
-    # Drop line from Marker (2) down to -1.3 (Just below Asking line)
+    # 5. FMV vs Ask Markers (LABELS IN MIDDLE) + RENAMED + ADDED PSF
+    # A) FMV
+    # Drop line from Marker (2) down to -1.3
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D')
-    # Label
-    ax.text(fmv, -1.5, f"VALUATION\n${fmv:,.0f}", ha="center", va="top", weight="bold", fontsize=11, color='black')
+    # Label changed to FMV and added PSF
+    ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # B) Your Ask
+    # B) ASKING
     # Drop line from Marker (1) down to -1.3
     ax.vlines(our_ask, 1, -1.3, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
-    # Label
-    ax.text(our_ask, -1.5, f"YOUR ASK\n${our_ask:,.0f}", ha="center", va="top", weight="bold", fontsize=13, color=status_color)
+    # Label changed to ASKING and added PSF
+    ax.text(our_ask, -1.5, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=13, color=status_color)
 
     # 6. HEADERS & LOGO (Top Layer)
     
@@ -236,8 +238,8 @@ if has_data:
 
     # Final visual tweaks
     ax.axis('off')
-    # Adjusted limits for new layout
-    ax.set_ylim(-5.5, 5.5) 
+    # Adjusted limits: Increased bottom limit to -7.0 to accommodate lower labels
+    ax.set_ylim(-7.0, 5.5) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
     st.pyplot(fig)
