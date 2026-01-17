@@ -51,7 +51,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR: BRANDING & INPUTS ---
+# --- SIDEBAR: BRANDING & UPDATED LABELS ---
 with st.sidebar:
     if os.path.exists("logo.png"):
         st.image("logo.png", use_container_width=True)
@@ -64,11 +64,13 @@ with st.sidebar:
     prepared_by = st.text_input("Prepared By", "")
     
     st.markdown("---")
+    
+    # Updated Market Details with (PSF)
     st.markdown("### Market Details")
-    t_low  = st.number_input("Lowest Transacted", value=None, step=1)
-    t_high = st.number_input("Highest Transacted", value=None, step=1)
-    a_low  = st.number_input("Lowest Asking", value=None, step=1)
-    a_high = st.number_input("Highest Asking", value=None, step=1)
+    t_low  = st.number_input("Lowest Transacted (PSF)", value=None, step=1)
+    t_high = st.number_input("Highest Transacted (PSF)", value=None, step=1)
+    a_low  = st.number_input("Lowest Asking (PSF)", value=None, step=1)
+    a_high = st.number_input("Highest Asking (PSF)", value=None, step=1)
 
     st.markdown("---")
     st.markdown("### Pricing Data")
@@ -103,20 +105,19 @@ file_date = now.strftime("%Y%m%d")
 st.title(f"{dev_name if dev_name else 'Market Analysis'}")
 st.markdown(f"Unit: {unit_no if unit_no else '-'} | Size: {sqft if sqft else '-'} sqft | Type: {u_type if u_type else '-'} | Prepared By: {prepared_by if prepared_by else '-'} | Date: {today_date}")
 
-# Row 1: PSF Metrics
+# Metric Rows
 r1_c1, r1_c2, r1_c3 = st.columns(3)
 r1_c1.metric("Est FMV (PSF)", f"${fmv:,.0f} PSF" if fmv else "-")
 r1_c2.metric("Our Asking (PSF)", f"${our_ask:,.0f} PSF" if our_ask else "-")
-r1_c3.metric("Variance", f"{diff_pct:+.1%}" if has_data else "-") # Updated label here
+r1_c3.metric("Variance", f"{diff_pct:+.1%}" if has_data else "-")
 
-# Row 2: Quantum Metrics
 r2_c1, r2_c2, r2_c3 = st.columns(3)
 r2_c1.metric("Est FMV (Quantum)", f"${(fmv * sqft):,.0f}" if (fmv and valid_sqft) else "-")
 r2_c2.metric("Our Asking (Quantum)", f"${(our_ask * sqft):,.0f}" if (our_ask and valid_sqft) else "-")
 
 st.divider()
 
-# --- PLOTTING / PLACEHOLDER ---
+# --- PLOTTING ---
 if not has_data:
     st.info("📊 **Graph will be generated once all values are entered.**")
     fig_empty, ax_empty = plt.subplots(figsize=(16, 2))
@@ -168,7 +169,7 @@ else:
 
     st.pyplot(fig)
 
-    # --- SIDEBAR DOWNLOAD ---
+    # --- DOWNLOAD ---
     st.sidebar.markdown("---")
     st.sidebar.markdown("### Download")
     fn_dev = dev_name.replace(" ", "_") if dev_name else "Project"
