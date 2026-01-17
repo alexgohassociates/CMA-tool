@@ -80,10 +80,8 @@ with st.sidebar:
     
     # 2. Property Details
     st.markdown("### Property Details")
-    # Empty strings for text inputs
     dev_name = st.text_input("Development / Address", "")
     unit_no  = st.text_input("Unit", "")
-    # value=None allows the box to be empty for number_input
     sqft     = st.number_input("Size (sqft)", value=None, step=1)
     u_type   = st.text_input("Type", "")
     prepared_by = st.text_input("Agent Name", "")
@@ -92,11 +90,9 @@ with st.sidebar:
     
     # 3. Market Data
     st.markdown("### Market Data")
-    # value=None for blank number inputs
     t1 = st.number_input("Lowest Transacted (PSF)", value=None, step=10)
     t2 = st.number_input("Highest Transacted (PSF)", value=None, step=10)
     
-    # Logic to handle None values safely
     if t1 is not None and t2 is not None:
         t_low, t_high = min(t1, t2), max(t1, t2)
     else:
@@ -115,8 +111,6 @@ with st.sidebar:
     our_ask = st.number_input("Asking Price (PSF)", value=None, step=10)
 
 # --- CALCULATIONS & DATA VALIDATION ---
-# Ensure all required numeric fields have valid data (>0)
-# We check if variables are not None first
 required_values = [sqft, fmv, our_ask, t1, t2, a1, a2]
 has_data = all(v is not None and v > 0 for v in required_values)
 
@@ -124,7 +118,6 @@ tz_sg = timezone(timedelta(hours=8))
 today_date = datetime.now(tz_sg).strftime("%d %b %Y")
 
 if has_data:
-    # Safe to convert since we checked for None
     sqft = float(sqft)
     fmv = float(fmv)
     our_ask = float(our_ask)
@@ -148,15 +141,13 @@ if has_data:
         status_text = "Greater than 10%"
         status_color = "#e74c3c" # Red
 else:
-    # Default State when fields are empty
     status_text = "Waiting for Data..."
     status_color = "#bdc3c7" # Grey
     diff_pct = 0
     fmv_quantum, ask_quantum = 0, 0
-    fmv, our_ask = 0, 0 # Avoid UnboundLocalError for display
+    fmv, our_ask = 0, 0
 
 # --- DASHBOARD LAYOUT ---
-# Title (Show placeholders if empty)
 display_dev_name = dev_name if dev_name else "Development Name"
 display_unit_no = unit_no if unit_no else "-"
 display_sqft = f"{int(sqft):,}" if (sqft and sqft > 0) else "-"
@@ -199,13 +190,23 @@ if has_data:
     # Limits for plotting
     y_min_limit = -8.0
     y_max_limit = 5.5
+    x_min_limit = data_min - padding
+    x_max_limit = data_max + (padding*0.5)
 
     # 1. Shaded Zones - RESTRICTED HEIGHT (fill_betweenx)
     y_shade = [y_min_limit, -0.5] 
     
+    # Red Zone (Far Left)
+    ax.fill_betweenx(y_shade, x_min_limit, lower_10, color='#e74c3c', alpha=0.1)
+    # Yellow Zone (Left)
     ax.fill_betweenx(y_shade, lower_10, lower_5, color='#f1c40f', alpha=0.1)
+    # Green Zone (Middle)
     ax.fill_betweenx(y_shade, lower_5, upper_5, color='#2ecc71', alpha=0.15)
+    # Yellow Zone (Right)
     ax.fill_betweenx(y_shade, upper_5, upper_10, color='#f1c40f', alpha=0.1)
+    # Red Zone (Far Right)
+    ax.fill_betweenx(y_shade, upper_10, x_max_limit, color='#e74c3c', alpha=0.1)
+
 
     # 2. Zone Labels
     y_labels_5 = -5.0 
@@ -237,9 +238,10 @@ if has_data:
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
     ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
+    # ASKING label color changed to 'black'
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
-    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color=status_color)
+    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     # 6. HEADERS & LOGO (Top Layer)
     if os.path.exists("logo.png"):
@@ -252,9 +254,7 @@ if has_data:
             pass 
 
     # Footer/Details Info
-    # Handle potentially blank fields for display
     safe_prepared_by = prepared_by if prepared_by else "-"
-    
     info_str = (f"{display_dev_name} ({display_unit_no}) | {display_sqft} sqft | {display_u_type}\n"
                 f"Analysis by {safe_prepared_by} | {today_date}")
     ax.text(0.03, 0.91, info_str, transform=fig.transFigure, ha='left', va='center', fontsize=10, fontweight='bold',
@@ -268,31 +268,24 @@ if has_data:
     # Final visual tweaks
     ax.axis('off')
     ax.set_ylim(y_min_limit, y_max_limit) 
-    ax.set_xlim(data_min - padding, data_max + (padding*0.5))
+    ax.set_xlim(x_min_limit, x_max_limit)
     
     st.pyplot(fig)
 elif not has_data:
-    # Optional: Friendly message when empty
     st.info("👈 Please enter property details and market data in the sidebar to generate the analysis.")
-
 
 # --- SIDEBAR DOWNLOAD BUTTON (PDF FORMAT) ---
 with st.sidebar:
     st.markdown("---")
     if fig is not None:
-        # Generate safe filename: "DevName-Unit-Size-Date-Agent.pdf"
         filename_date = datetime.now(tz_sg).strftime("%d-%m-%Y")
-        
-        # Sanitize inputs (handle empty strings safely)
         safe_dev = (dev_name if dev_name else "Property").replace("/", "-").replace("\\", "-")
         safe_unit = (unit_no if unit_no else "Unit").replace("/", "-")
         safe_sqft = str(int(sqft)) if (sqft and sqft > 0) else "0"
         safe_agent = prepared_by if prepared_by else "Agent"
         
-        # Construct filename with .pdf extension
         final_filename = f"{safe_dev}-{safe_unit}-{safe_sqft}-{filename_date}-{safe_agent}.pdf"
 
-        # Save to BytesIO buffer as PDF
         pdf_buffer = io.BytesIO()
         fig.savefig(pdf_buffer, format='pdf', bbox_inches='tight', dpi=300)
         
