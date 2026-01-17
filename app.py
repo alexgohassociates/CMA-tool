@@ -66,33 +66,38 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR: COMPACT CONTROLS ---
+# --- SIDEBAR: COMPACT CONTROLS (DEFAULTED TO BLANK/ZERO) ---
 with st.sidebar:
     st.markdown("### Report Details")
-    dev_name = st.text_input("Development", "KRHR")
-    unit_no  = st.text_input("Unit Number", "02-57")
-    sqft     = st.number_input("Size (sqft)", value=1079)
-    u_type   = st.text_input("Unit Type", "3 Room")
-    prepared_by = st.text_input("Prepared By", "Alex Goh")
+    dev_name = st.text_input("Development", "")
+    unit_no  = st.text_input("Unit Number", "")
+    sqft     = st.number_input("Size (sqft)", value=0)
+    u_type   = st.text_input("Unit Type", "")
+    prepared_by = st.text_input("Prepared By", "")
     
     st.markdown("---")
     st.markdown("### Market Range")
-    t_low  = st.number_input("Min Transacted", value=1000)
-    t_high = st.number_input("Max Transacted", value=1200)
-    a_low  = st.number_input("Min Asking", value=1050)
-    a_high = st.number_input("Max Asking", value=1300)
+    t_low  = st.number_input("Min Transacted", value=0)
+    t_high = st.number_input("Max Transacted", value=0)
+    a_low  = st.number_input("Min Asking", value=0)
+    a_high = st.number_input("Max Asking", value=0)
 
     st.markdown("---")
     st.markdown("### Pricing Data")
-    fmv    = st.number_input("Fair Market Value (PSF)", value=1150)
-    our_ask = st.number_input("Our Asking (PSF)", value=1250)
+    fmv    = st.number_input("Fair Market Value (PSF)", value=0)
+    our_ask = st.number_input("Our Asking (PSF)", value=0)
     
-# --- CALCULATIONS ---
-lower_5, upper_5 = fmv * 0.95, fmv * 1.05
-lower_10, upper_10 = fmv * 0.90, fmv * 1.10
-diff_pct = (our_ask - fmv) / fmv
+# --- CALCULATIONS (Safe handling for zero division) ---
+if fmv > 0:
+    lower_5, upper_5 = fmv * 0.95, fmv * 1.05
+    lower_10, upper_10 = fmv * 0.90, fmv * 1.10
+    diff_pct = (our_ask - fmv) / fmv
+else:
+    lower_5 = upper_5 = lower_10 = upper_10 = diff_pct = 0
 
-if abs(diff_pct) <= 0.05:
+if fmv == 0:
+    status_text, status_color = "WAITING FOR DATA", "#7f8c8d"
+elif abs(diff_pct) <= 0.05:
     status_text, status_color = "WITHIN 5% OF FMV", "#2ecc71"
 elif abs(diff_pct) <= 0.10:
     status_text, status_color = "BETWEEN 5-10% OF FMV", "#f1c40f"
@@ -105,7 +110,7 @@ today_date = now.strftime("%d %b %Y")
 file_date = now.strftime("%Y%m%d")
 
 # --- MAIN DASHBOARD ---
-st.title(f"{dev_name} | Market Analysis")
+st.title(f"{dev_name if dev_name else 'New Project'} | Market Analysis")
 st.markdown(f"Unit: {unit_no} | Size: {sqft} sqft | Type: {u_type} | Prepared By: {prepared_by} | Date: {today_date}")
 
 m1, m2, m3, m4 = st.columns(4)
@@ -120,9 +125,10 @@ st.divider()
 fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
 fig.patch.set_facecolor('white')
 
-ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
-ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)
-ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
+if fmv > 0:
+    ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
+    ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)
+    ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
 ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
 ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
@@ -137,19 +143,21 @@ ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
 ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
 ax.plot([our_ask, our_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2)
 
-min_plot_x = min(t_low, a_low, fmv, lower_10)
-label_x = min_plot_x - 180 
+# Dynamic Labeling Positioning
+min_val = min(t_low, a_low, fmv) if any([t_low, a_low, fmv]) else 800
+label_x = min_val - 180 
+
 ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', color='#2980b9', ha='left', va='center')
 ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', color='#2c3e50', ha='left', va='center')
 
 header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}\nPrepared By: {prepared_by}  |  Date: {today_date}"
-ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
+ax.text((t_low + t_high)/2 if (t_low+t_high) > 0 else 1000, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
          bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
 
 ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11)
 ax.text(our_ask, 0.2, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color=status_color, fontsize=12)
 
-ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
+ax.text((t_low + t_high)/2 if (t_low+t_high) > 0 else 1000, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
 if os.path.exists("logo.png"):
     logo_img = mpimg.imread("logo.png")
@@ -159,7 +167,7 @@ if os.path.exists("logo.png"):
 
 ax.axis('off')
 ax.set_ylim(-0.6, 3.8) 
-ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, upper_10) + 120)
+ax.set_xlim(label_x - 20, max(t_high, a_high, fmv, 1200) + 120)
 
 st.pyplot(fig)
 
@@ -167,9 +175,9 @@ st.pyplot(fig)
 st.sidebar.markdown("---")
 st.sidebar.markdown("### Download")
 
-fn_dev = dev_name.replace(" ", "_")
-fn_unit = unit_no.replace("-", "_").replace(" ", "_")
-fn_name = prepared_by.replace(" ", "_")
+fn_dev = dev_name.replace(" ", "_") if dev_name else "Project"
+fn_unit = unit_no.replace("-", "_").replace(" ", "_") if unit_no else "Unit"
+fn_name = prepared_by.replace(" ", "_") if prepared_by else "User"
 custom_filename = f"{fn_dev}_{fn_unit}_{file_date}_{fn_name}.pdf"
 
 buf_pdf = io.BytesIO()
