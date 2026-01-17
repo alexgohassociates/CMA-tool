@@ -126,12 +126,12 @@ else:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Variance Labels - Slanted to prevent overlap
-    label_y = -1.0
-    ax.text(lower_10, label_y, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
-    ax.text(lower_5, label_y, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
-    ax.text(upper_5, label_y, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
-    ax.text(upper_10, label_y, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
+    # Variance Labels - STAGGERED to prevent overlap
+    high_y, low_y = -0.8, -1.2
+    ax.text(lower_10, high_y, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(lower_5, low_y, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_5, high_y, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_10, low_y, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
 
     # Data Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
@@ -154,14 +154,26 @@ else:
     ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', ha='left', va='center')
     ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', ha='left', va='center')
 
-    # Reverted Header Layout (Single Line)
-    header_text = f"Dev/Address: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}\nPrepared By: {prepared_by}  |  Date: {today_date}"
-    ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
-             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
+    # TOP RIGHT SECTION (Aligned with Logo)
+    chart_max = max(t_high, a_high, fmv, upper_10)
+    info_x = chart_max + (chart_max * 0.05)
+    
+    header_info = (
+        f"Dev: {dev_name}\n"
+        f"Unit: {unit_no}\n"
+        f"Size: {sqft} sqft\n"
+        f"Type: {u_type}\n"
+        f"By: {prepared_by}\n"
+        f"Date: {today_date}"
+    )
+    
+    # Boxed Info in top right
+    ax.text(info_x, 3.6, header_info, ha='left', va='top', fontsize=9, fontweight='bold', linespacing=1.5,
+             bbox=dict(facecolor='white', edgecolor='#cccccc', boxstyle='round,pad=0.5'))
     
     if os.path.exists("logo.png"):
         logo_img = mpimg.imread("logo.png")
-        logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
+        logo_ax = fig.add_axes([0.80, 0.82, 0.12, 0.08]) 
         logo_ax.imshow(logo_img)
         logo_ax.axis('off')
 
@@ -170,8 +182,8 @@ else:
     ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
     ax.axis('off')
-    ax.set_ylim(-1.6, 3.8) 
-    ax.set_xlim(label_x - 50, max(t_high, a_high, fmv, upper_10) + 150)
+    ax.set_ylim(-1.8, 3.8) 
+    ax.set_xlim(label_x - 50, chart_max + (chart_max * 0.25))
 
     st.pyplot(fig)
 
