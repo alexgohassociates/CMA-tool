@@ -114,9 +114,6 @@ st.divider()
 # --- PLOTTING ---
 if not has_data:
     st.info("📊 **Graph will be generated once Market Values are entered.**")
-    fig_empty, ax_empty = plt.subplots(figsize=(16, 2))
-    ax_empty.axis('off')
-    st.pyplot(fig_empty)
 else:
     fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
     fig.patch.set_facecolor('white')
@@ -126,12 +123,12 @@ else:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Variance Labels - STAGGERED to prevent overlap
-    high_y, low_y = -0.8, -1.2
-    ax.text(lower_10, high_y, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(lower_5, low_y, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(upper_5, high_y, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(upper_10, low_y, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    # Bottom Variance Labels (Horizontal but Staggered)
+    y_high, y_low = -0.9, -1.3
+    ax.text(lower_10, y_high, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(lower_5, y_low, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_5, y_high, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    ax.text(upper_10, y_low, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
 
     # Data Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
@@ -148,16 +145,14 @@ else:
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
-    # Sidebar Labels
-    left_padding = (max(t_high, a_high, upper_10) - min(t_low, a_low, lower_10)) * 0.15
-    label_x = min(t_low, a_low, fmv, lower_10) - left_padding
-    ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', ha='left', va='center')
-    ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', ha='left', va='center')
+    # Side labels
+    data_min = min(t_low, a_low, lower_10)
+    data_max = max(t_high, a_high, upper_10)
+    label_x = data_min - ((data_max - data_min) * 0.1)
+    ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', ha='right', va='center')
+    ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', ha='right', va='center')
 
-    # TOP RIGHT SECTION (Aligned with Logo)
-    chart_max = max(t_high, a_high, fmv, upper_10)
-    info_x = chart_max + (chart_max * 0.05)
-    
+    # TOP RIGHT BOX (Now uses transform=ax.transAxes for consistent positioning)
     header_info = (
         f"Dev: {dev_name}\n"
         f"Unit: {unit_no}\n"
@@ -166,24 +161,25 @@ else:
         f"By: {prepared_by}\n"
         f"Date: {today_date}"
     )
-    
-    # Boxed Info in top right
-    ax.text(info_x, 3.6, header_info, ha='left', va='top', fontsize=9, fontweight='bold', linespacing=1.5,
-             bbox=dict(facecolor='white', edgecolor='#cccccc', boxstyle='round,pad=0.5'))
-    
+    ax.text(0.98, 0.85, header_info, transform=ax.transAxes, ha='right', va='top', 
+            fontsize=9, fontweight='bold', linespacing=1.6,
+            bbox=dict(facecolor='white', edgecolor='#cccccc', boxstyle='round,pad=0.8'))
+
+    # Logo Alignment
     if os.path.exists("logo.png"):
         logo_img = mpimg.imread("logo.png")
-        logo_ax = fig.add_axes([0.80, 0.82, 0.12, 0.08]) 
+        logo_ax = fig.add_axes([0.80, 0.86, 0.12, 0.08]) # Positioned above the info box
         logo_ax.imshow(logo_img)
         logo_ax.axis('off')
 
+    # FMV/Ask Labels & Status
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11)
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color=status_color, fontsize=12)
-    ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
+    ax.text((data_min + data_max)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
     ax.axis('off')
-    ax.set_ylim(-1.8, 3.8) 
-    ax.set_xlim(label_x - 50, chart_max + (chart_max * 0.25))
+    ax.set_ylim(-1.8, 3.5)
+    ax.set_xlim(label_x - 50, data_max + 50) # Tighter limits for better alignment
 
     st.pyplot(fig)
 
