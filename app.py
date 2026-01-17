@@ -19,39 +19,35 @@ st.markdown("""
         font-weight: 800 !important; 
     }
     
-    /* Sidebar Fixes: Reverting to Grey Boxes & Black Text */
+    /* Sidebar Fixes: Solid Visibility */
     section[data-testid="stSidebar"] { 
         background-color: #f1f3f6 !important; 
     }
     section[data-testid="stSidebar"] h3, 
     section[data-testid="stSidebar"] label {
-        color: #111111 !important;
+        color: #000000 !important;
         font-weight: 800 !important;
         font-size: 1rem !important;
     }
 
-    /* Text Box Styling: Grey background, Black text */
+    /* Input Boxes: Grey background, Solid Black text */
     .stTextInput input, .stNumberInput input {
-        background-color: #e5e7eb !important; /* Light Grey */
-        color: #000000 !important; /* Solid Black Text */
+        background-color: #e5e7eb !important; 
+        color: #000000 !important; 
         border: 1px solid #cccccc !important;
         font-weight: 600 !important;
     }
 
-    /* Metric Styling - Forced Left and High Visibility */
-    [data-testid="stMetric"] {
-        text-align: left !important;
-    }
+    /* Metrics: High visibility, No truncation (...) */
     [data-testid="stMetricLabel"] { 
         color: #444444 !important; 
         font-weight: 700 !important; 
-        font-size: 0.95rem !important;
         white-space: nowrap !important;
     }
     [data-testid="stMetricValue"] { 
         color: #000000 !important; 
         font-weight: 900 !important; 
-        font-size: 1.9rem !important;
+        font-size: 2rem !important;
     }
 
     header, footer {visibility: hidden;}
@@ -102,7 +98,6 @@ today_date = datetime.now(tz_sg).strftime("%d/%m/%Y")
 # --- MAIN DASHBOARD ---
 st.title(f"{dev_name}")
 
-# Expanded Column Ratios to eliminate "..."
 m1, m2, m3, spacer = st.columns([2, 2, 2, 4])
 m1.metric("Est FMV (PSF)", f"${fmv:,.0f} PSF" if fmv else "-")
 m2.metric("Our Asking (PSF)", f"${our_ask:,.0f} PSF" if our_ask else "-")
@@ -116,7 +111,7 @@ st.divider()
 
 # --- PLOTTING ---
 if has_data:
-    fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
+    fig, ax = plt.subplots(figsize=(16, 10), dpi=300)
     fig.patch.set_facecolor('white')
 
     # Shaded Zones
@@ -124,46 +119,48 @@ if has_data:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Zones Labels
+    # Zone Labels (Simplified to prevent clutter)
     y_h, y_l = -0.9, -1.3
     ax.text(lower_10, y_h, f"-10%\n${lower_10:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
     ax.text(lower_5, y_l, f"-5%\n${lower_5:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
     ax.text(upper_5, y_h, f"+5%\n${upper_5:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
     ax.text(upper_10, y_l, f"+10%\n${upper_10:,.0f}", ha='center', fontsize=9, weight='bold', color='#7f8c8d')
 
-    # Lines
+    # Market Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
 
     data_min = min(t_low, a_low, lower_10)
     data_max = max(t_high, a_high, upper_10)
 
-    # Left-Aligned Graph Titles
+    # Side labels
     ax.text(data_min - 45, 2, 'TRANSACTED PSF', weight='bold', ha='right', va='center', fontsize=11)
     ax.text(data_min - 45, 1, 'CURRENT ASKING PSF', weight='bold', ha='right', va='center', fontsize=11)
 
-    # Markers
+    # FMV and Our Ask Markers
     ax.scatter(fmv, 2, color='black', s=150, zorder=5)
     ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
-    # Details Box
-    box_txt = f"Dev: {dev_name}\nUnit: {unit_no}\nSize: {sqft} sqft\nType: {u_type}\nBy: {prepared_by}\nDate: {today_date}"
-    ax.text(0.98, 0.82, box_txt, transform=ax.transAxes, ha='right', va='top', fontsize=10, fontweight='bold',
-            linespacing=1.6, bbox=dict(facecolor='white', edgecolor='#cccccc', boxstyle='round,pad=0.8'))
+    # --- TOP PLACEMENT: LOGO AND DETAILS BOX ---
+    # Property Details Box (Now aligned with the logo area at the top right)
+    box_txt = f"Dev: {dev_name} | Unit: {unit_no} | Size: {sqft} sqft | Type: {u_type}\nPrepared By: {prepared_by} | Date: {today_date}"
+    ax.text(0.98, 0.95, box_txt, transform=ax.transAxes, ha='right', va='top', fontsize=10, fontweight='bold',
+            bbox=dict(facecolor='white', edgecolor='#cccccc', boxstyle='round,pad=0.5'))
 
     if os.path.exists("logo.png"):
-        logo_ax = fig.add_axes([0.84, 0.84, 0.12, 0.08]) 
+        logo_ax = fig.add_axes([0.84, 0.88, 0.12, 0.08]) 
         logo_ax.imshow(mpimg.imread("logo.png"))
         logo_ax.axis('off')
 
+    # Status & PSF Labels
     ax.text((data_min + data_max)/2, 2.7, f"STATUS: {status_text}", fontsize=22, weight='bold', color=status_color, ha='center')
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11)
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color=status_color, fontsize=12)
 
     ax.axis('off')
-    ax.set_ylim(-1.8, 3.5)
+    ax.set_ylim(-1.8, 3.8) # Slightly increased height
     ax.set_xlim(data_min - 250, data_max + 100)
 
     st.pyplot(fig)
