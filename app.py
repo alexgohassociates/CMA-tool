@@ -13,9 +13,6 @@ st.markdown("""
     <style>
     .stApp { background-color: white !important; }
     
-    /* COMPACT SIDEBAR */
-    [data-testid="stSidebar"] [data-testid="stVerticalBlock"] { gap: 0rem !important; }
-
     /* Input Box Styling */
     .stTextInput input, .stNumberInput input {
         background-color: #eeeeee !important;
@@ -96,7 +93,7 @@ else:
 tz_sg = timezone(timedelta(hours=8))
 now = datetime.now(tz_sg)
 today_date = now.strftime("%d/%m/%Y")
-file_date_suffix = now.strftime("%d_%m_%Y")
+file_date_suffix = now.strftime("%Y%m%d")
 
 # --- MAIN DASHBOARD ---
 st.title(f"{dev_name if dev_name else 'Market Analysis'}")
@@ -106,9 +103,9 @@ st.markdown(f"Unit: {unit_no if unit_no else '-'} | Size: {sqft if sqft else '-'
 r1_c1, r1_c2, r1_c3 = st.columns(3)
 r1_c1.metric("Est FMV (PSF)", f"${fmv:,.0f} PSF" if fmv else "-")
 r1_c2.metric("Our Asking (PSF)", f"${our_ask:,.0f} PSF" if our_ask else "-")
-r1_c3.metric("Variance", f"{diff_pct:+.1%}" if has_data else "-")
+r1_c3.metric("PSF Variance", f"{diff_pct:+.1%}" if has_data else "-")
 
-r2_c1, r2_c2, r2_c3 = st.columns(3)
+r2_c1, r2_c2 = st.columns(2)
 r2_c1.metric("Est FMV (Quantum)", f"${(fmv * sqft):,.0f}" if (fmv and valid_sqft) else "-")
 r2_c2.metric("Our Asking (Quantum)", f"${(our_ask * sqft):,.0f}" if (our_ask and valid_sqft) else "-")
 
@@ -129,11 +126,12 @@ else:
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
-    # Zone Labels (Moved Lower)
-    ax.text(lower_10, -0.9, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(lower_5, -0.9, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(upper_5, -0.9, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
-    ax.text(upper_10, -0.9, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold')
+    # Variance Labels - Slanted to prevent overlap
+    label_y = -1.0
+    ax.text(lower_10, label_y, f"-10%\n${lower_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
+    ax.text(lower_5, label_y, f"-5%\n${lower_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
+    ax.text(upper_5, label_y, f"+5%\n${upper_5:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
+    ax.text(upper_10, label_y, f"+10%\n${upper_10:,.0f} PSF", ha='center', fontsize=9, color='#7f8c8d', weight='bold', rotation=15)
 
     # Data Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
@@ -150,43 +148,30 @@ else:
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
-    label_x = min(t_low, a_low, fmv, lower_10) - 150 
+    # Sidebar Labels
+    left_padding = (max(t_high, a_high, upper_10) - min(t_low, a_low, lower_10)) * 0.15
+    label_x = min(t_low, a_low, fmv, lower_10) - left_padding
     ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', ha='left', va='center')
     ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', ha='left', va='center')
 
-    # --- TOP RIGHT BRANDING SECTION ---
-    # Alignment logic: Move the info box to the right, align with Logo
-    chart_right_bound = max(t_high, a_high, fmv, upper_10)
-    
-    # Left Aligned Text with extra spacing (tabs/spaces)
-    header_info = (
-        f"Dev/Address:  {dev_name}\n"
-        f"Unit Number:   {unit_no}\n"
-        f"Unit Size:          {sqft} sqft\n"
-        f"Unit Type:         {u_type}\n"
-        f"Prepared By:     {prepared_by}\n"
-        f"Date:                   {today_date}"
-    )
-    
-    # Positioned at the top right, aligned with logo
-    ax.text(chart_right_bound + 100, 3.4, header_info, ha='left', va='top', fontsize=10, fontweight='bold', 
-             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.8', alpha=0.8))
+    # Reverted Header Layout (Single Line)
+    header_text = f"Dev/Address: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}\nPrepared By: {prepared_by}  |  Date: {today_date}"
+    ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
+             bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
     
     if os.path.exists("logo.png"):
         logo_img = mpimg.imread("logo.png")
-        # logo_ax adjusted to sit above/beside the info box
-        logo_ax = fig.add_axes([0.78, 0.82, 0.12, 0.08]) 
+        logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
         logo_ax.imshow(logo_img)
         logo_ax.axis('off')
 
-    # FMV and Status Text
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11)
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color=status_color, fontsize=12)
     ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
     ax.axis('off')
-    ax.set_ylim(-1.3, 3.8) 
-    ax.set_xlim(label_x - 20, chart_right_bound + 450) # Added right padding for the box
+    ax.set_ylim(-1.6, 3.8) 
+    ax.set_xlim(label_x - 50, max(t_high, a_high, fmv, upper_10) + 150)
 
     st.pyplot(fig)
 
