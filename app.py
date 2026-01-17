@@ -5,16 +5,42 @@ import io
 import os
 from datetime import datetime, timedelta, timezone
 
-# 1. Page Configuration & Custom Styling
-st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
+# 1. Page Configuration - Force Light Mode & Custom Styling
+st.set_page_config(
+    page_title="ProProperty PSF Analyzer", 
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
 
+# Comprehensive CSS to force white background and dark text
 st.markdown("""
     <style>
-    .main { background-color: #f8f9fa; }
-    div[data-testid="stMetricValue"] { font-size: 24px; font-weight: bold; }
-    .stButton>button { width: 100%; border-radius: 5px; height: 3em; background-color: #3498db; color: white; }
+    /* Main background */
+    .stApp {
+        background-color: white !important;
+        color: #31333F !important;
+    }
+    /* Metric Card Styling */
+    div[data-testid="stMetricValue"] {
+        font-size: 28px;
+        font-weight: bold;
+        color: #1f77b4 !important;
+    }
+    div[data-testid="stMetricLabel"] {
+        color: #555555 !important;
+    }
+    /* Button Styling */
+    .stButton>button {
+        width: 100%;
+        border-radius: 5px;
+        height: 3em;
+        background-color: #3498db;
+        color: white;
+    }
+    /* Hide default Streamlit elements */
     footer {visibility: hidden;}
     #MainMenu {visibility: hidden;}
+    header {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -60,7 +86,7 @@ with col1:
     st.caption(f"Unit: {unit_no} • {sqft} sqft • {u_type} | Data as of {gen_time}")
 with col2:
     if os.path.exists("logo.png"):
-        st.image("logo.png", width=150)
+        st.image("logo.png", width=180)
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Our Asking PSF", f"${our_ask:,.0f} PSF")
@@ -72,7 +98,7 @@ st.divider()
 
 # --- PLOTTING LOGIC ---
 fig, ax = plt.subplots(figsize=(16, 9))
-fig.patch.set_facecolor('#f8f9fa')
+fig.patch.set_facecolor('white') # Force white background for image export
 
 # Three-Tier Background Zones
 ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
@@ -83,7 +109,7 @@ ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', linewidth=6)
 ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', linewidth=6)
 
-# Labels
+# PSF Labels for Ranges
 ax.text(t_low, 2.15, f"${int(t_low)} PSF", ha='center', weight='bold', color='#1f77b4')
 ax.text(t_high, 2.15, f"${int(t_high)} PSF", ha='center', weight='bold', color='#1f77b4')
 ax.text(a_low, 0.75, f"${int(a_low)} PSF", ha='center', weight='bold', color='#34495e')
@@ -95,7 +121,7 @@ ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
 ax.scatter(our_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
 ax.plot([our_ask, our_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
 
-# Zone Boundaries
+# Zone Boundaries Labels
 boundary_y = -0.3
 ax.text(lower_10, boundary_y, f"-10%\n${int(lower_10)} PSF", ha='center', fontsize=9, color='grey')
 ax.text(lower_5, boundary_y, f"-5%\n${int(lower_5)} PSF", ha='center', fontsize=9, color='grey')
@@ -113,17 +139,17 @@ header_text = f"Dev: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Ty
 ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
          bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
 
-# Value Labels
+# Value Labels (Updated to OUR ASK)
 ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f} PSF', ha='center', weight='bold', fontsize=11)
 ax.text(our_ask, 0.2, f'OUR ASK\n${our_ask:,.0f} PSF', ha='center', weight='bold', color=status_color, fontsize=12)
 
-# Status Title
+# Positioning Title
 ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
 # --- LOGO ON CHART (PDF/PNG) ---
 if os.path.exists("logo.png"):
     logo_img = mpimg.imread("logo.png")
-    # Position: [x, y, width, height] in figure coordinates (0 to 1)
+    # Position: [x, y, width, height]
     logo_ax = fig.add_axes([0.78, 0.82, 0.12, 0.12], anchor='NE', zorder=1)
     logo_ax.imshow(logo_img)
     logo_ax.axis('off')
@@ -137,6 +163,7 @@ st.pyplot(fig)
 # --- DOWNLOAD SECTION ---
 st.sidebar.divider()
 st.sidebar.subheader("Download Options")
+
 buf_png = io.BytesIO()
 fig.savefig(buf_png, format="png", bbox_inches='tight', dpi=300)
 st.sidebar.download_button(label="📥 Download as Image (PNG)", data=buf_png.getvalue(), file_name=f"Analysis_{dev_name}.png", mime="image/png")
