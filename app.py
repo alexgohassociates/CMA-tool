@@ -56,35 +56,39 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# --- SIDEBAR: BRANDING & UPDATED INPUT LABELS ---
+# --- SIDEBAR: BRANDING & UPDATED LABELS ---
 with st.sidebar:
     if os.path.exists("logo.png"):
         st.image("logo.png", use_container_width=True)
     
-    # Section 1: Property Details
+    # Section 1: Property Details (Updated)
     st.markdown("### Property Details")
     dev_name = st.text_input("Development / Address", "")
     unit_no  = st.text_input("Unit Number", "")
-    sqft     = st.number_input("Size (sqft)", value=0)
+    # Using value=None removes the leading '0'
+    sqft     = st.number_input("Size (sqft)", value=None, step=1)
     u_type   = st.text_input("Unit Type", "")
     prepared_by = st.text_input("Prepared By", "")
     
     st.markdown("---")
     
-    # Section 2: Market Details
+    # Section 2: Market Details (Updated Labels)
     st.markdown("### Market Details")
-    t_low  = st.number_input("Lowest Transacted", value=0)
-    t_high = st.number_input("Highest Transacted", value=0)
-    a_low  = st.number_input("Lowest Asking", value=0)
-    a_high = st.number_input("Highest Asking", value=0)
+    t_low  = st.number_input("Lowest Transacted", value=None, step=1)
+    t_high = st.number_input("Highest Transacted", value=None, step=1)
+    a_low  = st.number_input("Lowest Asking", value=None, step=1)
+    a_high = st.number_input("Highest Asking", value=None, step=1)
 
     st.markdown("---")
+    
+    # Section 3: Pricing Data
     st.markdown("### Pricing Data")
-    fmv    = st.number_input("Fair Market Value (PSF)", value=0)
-    our_ask = st.number_input("Our Asking (PSF)", value=0)
+    fmv      = st.number_input("Fair Market Value (PSF)", value=None, step=1)
+    our_ask  = st.number_input("Our Asking (PSF)", value=None, step=1)
 
-# --- CALCULATIONS ---
-has_data = all([fmv > 0, our_ask > 0, t_high > 0, a_high > 0])
+# --- CALCULATIONS & DATA CHECK ---
+# Ensure values are not None and greater than 0
+has_data = all(v is not None and v > 0 for v in [fmv, our_ask, t_high, a_high])
 
 if has_data:
     lower_5, upper_5 = fmv * 0.95, fmv * 1.05
@@ -101,6 +105,7 @@ else:
     status_text, status_color = "Awaiting Input", "#7f8c8d"
     diff_pct = 0
 
+# Set Date
 tz_sg = timezone(timedelta(hours=8))
 now = datetime.now(tz_sg)
 today_date = now.strftime("%d %b %Y")
@@ -108,13 +113,13 @@ file_date = now.strftime("%Y%m%d")
 
 # --- MAIN DASHBOARD ---
 st.title(f"{dev_name if dev_name else 'Market Analysis'}")
-st.markdown(f"Unit: {unit_no} | Size: {sqft} sqft | Type: {u_type} | Prepared By: {prepared_by} | Date: {today_date}")
+st.markdown(f"Unit: {unit_no if unit_no else '-'} | Size: {sqft if sqft else '-'} sqft | Type: {u_type if u_type else '-'} | Prepared By: {prepared_by if prepared_by else '-'} | Date: {today_date}")
 
 m1, m2, m3, m4 = st.columns(4)
-m1.metric("Est. FMV", f"${fmv:,.0f} PSF")
-m2.metric("Our Asking PSF", f"${our_ask:,.0f} PSF")
+m1.metric("Est. FMV", f"${fmv:,.0f} PSF" if fmv else "-")
+m2.metric("Our Asking PSF", f"${our_ask:,.0f} PSF" if our_ask else "-")
 m3.metric("Price Variance", f"{diff_pct:+.1%}" if has_data else "0%")
-m4.metric("Total Asking (Quantum)", f"${(our_ask * sqft):,.0f}")
+m4.metric("Total Asking (Quantum)", f"${(our_ask * sqft):,.0f}" if (our_ask and sqft) else "-")
 
 st.divider()
 
@@ -125,40 +130,50 @@ if not has_data:
     ax_empty.axis('off')
     st.pyplot(fig_empty)
 else:
+    # Full Chart Generation
     fig, ax = plt.subplots(figsize=(16, 9), dpi=300)
     fig.patch.set_facecolor('white')
 
+    # Color Zones
     ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)
     ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
     ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
+    # Range Lines
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=8, linewidth=5)
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=8, linewidth=5)
 
+    # Labels (Strictly Black)
     ax.text(t_low, 2.15, f"${int(t_low)} PSF", ha='center', weight='bold', color='black')
     ax.text(t_high, 2.15, f"${int(t_high)} PSF", ha='center', weight='bold', color='black')
     ax.text(a_low, 0.75, f"${int(a_low)} PSF", ha='center', weight='bold', color='black')
     ax.text(a_high, 0.75, f"${int(a_high)} PSF", ha='center', weight='bold', color='black')
 
+    # Data Points
     ax.scatter(fmv, 2, color='black', s=150, zorder=5)
     ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
     ax.scatter(our_ask, 1, color=status_color, s=250, edgecolors='black', zorder=6)
     ax.plot([our_ask, our_ask], [1, -0.1], color=status_color, linestyle='--', linewidth=2)
 
-    min_val = min(t_low, a_low, fmv)
+    # Label Alignment
+    vals_to_compare = [v for v in [t_low, a_low, fmv] if v is not None]
+    min_val = min(vals_to_compare)
     label_x = min_val - 180 
     ax.text(label_x, 2, 'TRANSACTED PSF', weight='bold', color='black', ha='left', va='center')
     ax.text(label_x, 1, 'CURRENT ASKING PSF', weight='bold', color='black', ha='left', va='center')
 
+    # Header Box
     header_text = f"Dev/Address: {dev_name}  |  Unit: {unit_no}  |  Size: {sqft} sqft  |  Type: {u_type}\nPrepared By: {prepared_by}  |  Date: {today_date}"
     ax.text((t_low + t_high)/2, 3.4, header_text, ha='center', fontsize=12, fontweight='bold', 
              bbox=dict(facecolor='white', edgecolor='black', boxstyle='round,pad=0.5'))
     
+    # Bottom labels: OUR ASK lower than FMV to prevent overlap
     ax.text(fmv, 0.2, f"FMV\n${fmv:,.0f} PSF", ha="center", weight="bold", fontsize=11, color='black')
     ax.text(our_ask, -0.4, f"OUR ASK\n${our_ask:,.0f} PSF", ha="center", weight="bold", color='black', fontsize=12)
 
     ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
+    # Chart Logo
     if os.path.exists("logo.png"):
         logo_img = mpimg.imread("logo.png")
         logo_ax = fig.add_axes([0.82, 0.82, 0.15, 0.10]) 
