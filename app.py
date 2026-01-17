@@ -70,4 +70,47 @@ fig, ax = plt.subplots(figsize=(16, 8))
 fig.patch.set_facecolor('#f8f9fa')
 
 # Three-Tier Background Zones
-ax.axvspan(lower_5, upper_5, color
+ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
+ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)
+ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
+
+# Range Lines
+ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', linewidth=6)
+ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', linewidth=6)
+
+# Indicators
+ax.scatter(fmv, 2, color='black', s=180, zorder=5)
+ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
+ax.scatter(my_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
+ax.plot([my_ask, my_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
+
+# Axis Labels
+min_plot_x = min(t_low, a_low, fmv, lower_10)
+label_x = min_plot_x - 50
+ax.text(label_x, 2, 'TRANSACTED', weight='bold', color='#2980b9', ha='right', va='center')
+ax.text(label_x, 1, 'MARKET ASKING', weight='bold', color='#2c3e50', ha='right', va='center')
+
+# Values
+ax.text(fmv, 0.2, f'FMV\n${fmv:,.0f}', ha='center', weight='bold', fontsize=11)
+ax.text(my_ask, 0.2, f'ASKING\n${my_ask:,.0f}', ha='center', weight='bold', color=status_color, fontsize=12)
+
+# Positioning Title
+ax.text((t_low + t_high)/2, 2.7, f"POSITIONING: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
+
+ax.axis('off')
+ax.set_ylim(0, 3)
+
+# Render Plot
+st.pyplot(fig)
+
+# --- DOWNLOAD BUTTON ---
+buf = io.BytesIO()
+fig.savefig(buf, format="png", bbox_inches='tight', dpi=300)
+st.sidebar.download_button(
+    label="📥 Download Report as Image",
+    data=buf.getvalue(),
+    file_name=f"Report_{dev_name}_{unit_no}.png",
+    mime="image/png"
+)
+
+st.success(f"Analysis complete. This property is currently positioned as a **{status_text}**.")
