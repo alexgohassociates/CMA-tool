@@ -151,7 +151,6 @@ fig = None
 
 if has_data:
     # Create Figure
-    # Adjusted figsize to be slightly more compact but wide
     fig, ax = plt.subplots(figsize=(12, 7), dpi=300)
     fig.patch.set_facecolor('white')
     
@@ -195,17 +194,13 @@ if has_data:
 
     # 5. FMV vs Ask Markers (DOWNWARD DROP LINES)
     # A) Valuation (FMV)
-    # Dotted line from Marker (2) down to bottom area (-4.8)
     ax.vlines(fmv, 2, -4.8, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D')
-    # Label at the BOTTOM
     ax.text(fmv, -5.0, f"VALUATION\n${fmv:,.0f}", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     # B) Your Ask
-    # Dotted line from Marker (1) down to bottom area (-4.8)
     ax.vlines(our_ask, 1, -4.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
-    # Label at the BOTTOM
     ax.text(our_ask, -5.0, f"YOUR ASK\n${our_ask:,.0f}", ha="center", va="top", weight="bold", fontsize=13, color=status_color)
 
     # 6. HEADERS & LOGO (Top Layer)
@@ -227,21 +222,18 @@ if has_data:
     ax.text(0.03, 0.95, info_str, transform=fig.transFigure, ha='left', va='top', fontsize=12, fontweight='bold',
             color='#555555', bbox=dict(facecolor='#f8f9fa', edgecolor='none', boxstyle='round,pad=0.5'))
 
-    # C. Status Banner (Top Left) - PERFECT ROUND DOT & MATCHING FONT
-    # Note: We use ax.scatter with transform=fig.transFigure. This ensures the dot is drawn
-    # as a marker (pixels) rather than a shape (data units), so it is ALWAYS round.
+    # C. Status Banner (Top Left) - MOVED DOWN FOR MORE SPACE
+    # Old y = 0.87. New y = 0.82
     
     # 1. The Dot
-    # x=0.04, y=0.87 (Adjusted to sit nicely under the box)
-    ax.scatter([0.04], [0.87], s=180, color=status_color, marker='o', transform=fig.transFigure, clip_on=False, zorder=20)
+    ax.scatter([0.04], [0.82], s=180, color=status_color, marker='o', transform=fig.transFigure, clip_on=False, zorder=20)
 
-    # 2. The Text (Grey #555555, Size 12, Bold - Matching the box above)
-    ax.text(0.055, 0.87, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='center',
+    # 2. The Text
+    ax.text(0.055, 0.82, f"STATUS: {status_text}", transform=fig.transFigure, ha='left', va='center',
             fontsize=12, weight='bold', color='#555555')
 
     # Final visual tweaks
     ax.axis('off')
-    # Limits set to contain the drop lines comfortably
     ax.set_ylim(-6.0, 4.0) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
