@@ -107,7 +107,7 @@ st.markdown(f"Unit: {unit_no if unit_no else '-'} | Size: {sqft if sqft else '-'
 r1_c1, r1_c2, r1_c3 = st.columns(3)
 r1_c1.metric("Est FMV (PSF)", f"${fmv:,.0f} PSF" if fmv else "-")
 r1_c2.metric("Our Asking (PSF)", f"${our_ask:,.0f} PSF" if our_ask else "-")
-r1_c3.metric("PSF Variance", f"{diff_pct:+.1%}" if has_data else "-")
+r1_c3.metric("Variance", f"{diff_pct:+.1%}" if has_data else "-") # Updated label here
 
 # Row 2: Quantum Metrics
 r2_c1, r2_c2, r2_c3 = st.columns(3)
