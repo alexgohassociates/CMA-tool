@@ -193,26 +193,24 @@ if has_data:
     ax.text(text_x_pos, 1, 'CURRENT ASKING', weight='bold', ha='right', va='center', fontsize=12, color='#34495e')
 
     # 5. The "Status" Banner (Bottom)
-    ax.text((data_min + data_max)/2, -3.2, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center',
+    # Added zorder=12 to ensure it sits ON TOP of the drop lines
+    ax.text((data_min + data_max)/2, -3.2, f"STATUS: {status_text}", fontsize=24, weight='bold', color='black', ha='center', zorder=12,
             bbox=dict(facecolor='white', edgecolor=status_color, boxstyle='round,pad=0.5', linewidth=2))
 
-    # 6. FMV vs Ask Markers (VERTICAL DROP LINES)
-    
+    # 6. FMV vs Ask Markers (DOWNWARD DROP LINES)
     # A) Valuation (FMV)
-    # Dotted line from Top (4.5) down to the Marker (2)
-    ax.vlines(fmv, 2, 4.5, linestyles='dotted', colors='black', linewidth=2, zorder=5)
-    # The Marker itself
+    # Dotted line from Marker (2) down to bottom area (-4.8). zorder=5 puts it behind status banner.
+    ax.vlines(fmv, 2, -4.8, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=250, zorder=10, marker='D')
-    # The Label at the TOP
-    ax.text(fmv, 4.6, f"VALUATION\n${fmv:,.0f}", ha="center", va="bottom", weight="bold", fontsize=11, color='black')
+    # Label at the BOTTOM
+    ax.text(fmv, -5.0, f"VALUATION\n${fmv:,.0f}", ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     # B) Your Ask
-    # Dotted line from Top (4.5) down to the Marker (1)
-    ax.vlines(our_ask, 1, 4.5, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
-    # The Marker itself
+    # Dotted line from Marker (1) down to bottom area (-4.8)
+    ax.vlines(our_ask, 1, -4.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=400, edgecolors='black', zorder=11, linewidth=2)
-    # The Label at the TOP
-    ax.text(our_ask, 4.6, f"YOUR ASK\n${our_ask:,.0f}", ha="center", va="bottom", weight="bold", fontsize=13, color=status_color)
+    # Label at the BOTTOM
+    ax.text(our_ask, -5.0, f"YOUR ASK\n${our_ask:,.0f}", ha="center", va="top", weight="bold", fontsize=13, color=status_color)
 
     # 7. Logo on Graph (Top Right)
     if os.path.exists("logo.png"):
@@ -233,8 +231,8 @@ if has_data:
 
     # Final visual tweaks
     ax.axis('off')
-    # Increased Top Limit to 5.5 to allow space for top labels
-    ax.set_ylim(-4.5, 5.5) 
+    # Adjusted limits: Less top space, more bottom space for new labels
+    ax.set_ylim(-6.0, 4.0) 
     ax.set_xlim(data_min - padding, data_max + (padding*0.5))
     
     st.pyplot(fig)
