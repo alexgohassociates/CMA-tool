@@ -1,46 +1,23 @@
 import streamlit as st
 import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
 import io
 import os
 from datetime import datetime, timedelta, timezone
 
 # 1. Page Configuration
-st.set_page_config(
-    page_title="ProProperty PSF Analyzer", 
-    layout="wide",
-    initial_sidebar_state="expanded"
-)
+st.set_page_config(page_title="ProProperty PSF Analyzer", layout="wide")
 
-# CSS for White Background and Bold Black Site Headers
+# CSS for High-Contrast Site UI
 st.markdown("""
     <style>
     .stApp { background-color: white !important; }
-    /* Metric Labels and Values - Bold Black */
-    [data-testid="stMetricLabel"] {
-        color: #000000 !important;
-        font-weight: 800 !important;
-        font-size: 1.1rem !important;
-    }
-    [data-testid="stMetricValue"] {
-        color: #1f77b4 !important;
-        font-weight: 900 !important;
-    }
-    /* Main Titles - Bold Black */
-    h1, h2, h3 {
-        color: #000000 !important;
-        font-weight: 800 !important;
-    }
-    /* Meta text */
-    .stMarkdown p, .stCaption {
-        color: #000000 !important;
-        font-weight: 600 !important;
-    }
-    section[data-testid="stSidebar"] {
-        background-color: #f8f9fb !important;
-    }
-    header {visibility: hidden;}
-    footer {visibility: hidden;}
+    [data-testid="stMetricLabel"] { color: #000000 !important; font-weight: 800 !important; }
+    [data-testid="stMetricValue"] { color: #1f77b4 !important; font-weight: 900 !important; }
+    h1, h2, h3, p, span { color: #000000 !important; font-weight: 700 !important; }
+    section[data-testid="stSidebar"] { background-color: #f8f9fb !important; }
+    header, footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
@@ -81,7 +58,7 @@ gen_time = datetime.now(tz_sg).strftime("%d %b %Y, %H:%M (GMT+8)")
 
 # --- MAIN DASHBOARD ---
 st.title(f"🏢 {dev_name} | Market Analysis")
-st.markdown(f"Unit: **{unit_no}** | Size: **{sqft} sqft** | Type: **{u_type}** | Data as of: **{gen_time}**")
+st.markdown(f"Unit: **{unit_no}** | Size: **{sqft} sqft** | Type: **{u_type}** | **{gen_time}**")
 
 m1, m2, m3, m4 = st.columns(4)
 m1.metric("Our Asking PSF", f"${our_ask:,.0f} PSF")
@@ -91,20 +68,21 @@ m4.metric("Total Asking", f"${(our_ask * sqft):,.0f}")
 
 st.divider()
 
-# --- PLOTTING LOGIC ---
+# --- PLOTTING LOGIC (High DPI Focus) ---
+plt.rcParams['figure.dpi'] = 300
 fig, ax = plt.subplots(figsize=(16, 9))
 fig.patch.set_facecolor('white')
 
-# Zones
+# Background Zones
 ax.axvspan(lower_5, upper_5, color='#2ecc71', alpha=0.12)
 ax.axvspan(lower_10, lower_5, color='#f1c40f', alpha=0.1)
 ax.axvspan(upper_5, upper_10, color='#f1c40f', alpha=0.1)
 
 # Range Lines
-ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', linewidth=6)
-ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', linewidth=6)
+ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=10, linewidth=6)
+ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=10, linewidth=6)
 
-# PSF Labels
+# Labels
 ax.text(t_low, 2.15, f"${int(t_low)} PSF", ha='center', weight='bold', color='#1f77b4')
 ax.text(t_high, 2.15, f"${int(t_high)} PSF", ha='center', weight='bold', color='#1f77b4')
 ax.text(a_low, 0.75, f"${int(a_low)} PSF", ha='center', weight='bold', color='#34495e')
@@ -115,11 +93,6 @@ ax.scatter(fmv, 2, color='black', s=180, zorder=5)
 ax.plot([fmv, fmv], [2, 0.4], color='#bdc3c7', linestyle='--', alpha=0.5)
 ax.scatter(our_ask, 1, color=status_color, s=300, edgecolors='black', zorder=6)
 ax.plot([our_ask, our_ask], [1, 0.4], color=status_color, linestyle='--', linewidth=2.5)
-
-# Boundaries
-boundary_y = -0.3
-for val, lbl in zip([lower_10, lower_5, upper_5, upper_10], ["-10%", "-5%", "+5%", "+10%"]):
-    ax.text(val, boundary_y, f"{lbl}\n${int(val)} PSF", ha='center', fontsize=9, color='grey')
 
 # Axis Titles
 min_plot_x = min(t_low, a_low, fmv, lower_10)
@@ -139,12 +112,13 @@ ax.text(our_ask, 0.2, f'OUR ASK\n${our_ask:,.0f} PSF', ha='center', weight='bold
 # Status Title
 ax.text((t_low + t_high)/2, 2.7, f"STATUS: {status_text}", fontsize=18, weight='bold', color=status_color, ha='center')
 
-# --- LOGO ON CHART (Sharper Scaling) ---
+# --- SHARP LOGO PLACEMENT ---
 if os.path.exists("logo.png"):
-    logo_img = mpimg.imread("logo.png")
-    logo_ax = fig.add_axes([0.75, 0.80, 0.18, 0.15], anchor='NE', zorder=1)
-    logo_ax.imshow(logo_img, interpolation='lanczos') # Ensures sharpness
-    logo_ax.axis('off')
+    img = mpimg.imread("logo.png")
+    # OffsetImage keeps the pixel density higher
+    imagebox = OffsetImage(img, zoom=0.25, interpolation='sinc') 
+    ab = AnnotationBbox(imagebox, (0.92, 0.90), xycoords='axes fraction', frameon=False)
+    ax.add_artist(ab)
 
 ax.axis('off')
 ax.set_ylim(-0.6, 3.7) 
