@@ -12,10 +12,10 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: V2.9 (FORCE LIGHT THEME & CONSISTENCY) ---
+# --- CSS: V3.0 (RESTORATION & STABILITY) ---
 st.markdown("""
     <style>
-    /* 1. GLOBAL THEME OVERRIDE (Force Light Mode) */
+    /* 1. FORCE LIGHT THEME (Fixes System Dark Mode Issues) */
     :root {
         --primary-color: #ff4b4b;
         --background-color: #ffffff;
@@ -23,11 +23,9 @@ st.markdown("""
         --text-color: #000000;
         --font: "Helvetica", sans-serif;
     }
-    
-    /* Force browser to render standard controls (scrollbars, inputs) in light mode */
     [data-testid="stAppViewContainer"] {
         background-color: #ffffff;
-        color-scheme: light; 
+        color-scheme: light;
     }
     
     /* 2. Main App Background -> White */
@@ -39,26 +37,23 @@ st.markdown("""
         font-family: 'Helvetica', sans-serif;
     }
     
-    /* 4. Sidebar -> Consistent Light Grey/White */
+    /* 4. Sidebar -> Light Grey/White */
     [data-testid="stSidebar"] {
         background-color: #ffffff !important;
         border-right: 1px solid #e0e0e0;
     }
     
-    /* 5. Inputs -> Light Grey Background, Black Text, standard Light Mode Borders */
+    /* 5. Inputs -> Light Grey */
     [data-testid="stSidebar"] .stTextInput input, 
     [data-testid="stSidebar"] .stNumberInput input {
         color: #000000 !important;
         background-color: #f0f2f6 !important;
         border: 1px solid #d1d5db !important;
     }
-    
-    /* Labels in sidebar */
     [data-testid="stSidebar"] label {
         color: #000000 !important;
     }
 
-    /* Download Button Style */
     div.stDownloadButton > button {
         background-color: #f0f2f6 !important;
         color: #000000 !important;
@@ -66,46 +61,33 @@ st.markdown("""
         width: 100%;
     }
 
-    /* 6. Header Management */
-    /* Hide Decoration & Toolbar */
-    [data-testid="stDecoration"], [data-testid="stToolbar"] {
-        display: none !important;
-    }
-
-    /* Force Header to be visible but White */
+    /* 6. HEADER RESTORATION (The Fix) */
+    /* We DO NOT hide the header. We just paint it white. */
     [data-testid="stHeader"] {
         background-color: white !important;
         border-bottom: 1px solid #e0e0e0;
-        z-index: 10 !important;
+        visibility: visible !important; /* Ensure it is visible */
     }
 
-    /* 7. SIDEBAR TOGGLE BUTTON (High Contrast Black) */
-    [data-testid="stSidebarCollapsedControl"] {
-        display: block !important;
-        visibility: visible !important;
-        z-index: 999999 !important;
-        
-        /* Visible BLACK box */
-        background-color: #000000 !important;
-        border-radius: 8px !important;
-        padding: 4px !important;
-        
-        margin-top: 10px !important;
-        margin-left: 10px !important;
+    /* Hide ONLY the rainbow decoration line */
+    [data-testid="stDecoration"] {
+        display: none !important;
     }
     
-    [data-testid="stSidebarCollapsedControl"] button {
-        border: none !important;
-        background: transparent !important;
-        color: white !important;
+    /* We leave stToolbar (top right menu) VISIBLE for now to ensure stability */
+    
+    /* 7. SIDEBAR TOGGLE BUTTON NATURAL STYLE */
+    /* We stop forcing position:fixed. We just force the COLOR. */
+    [data-testid="stSidebarCollapsedControl"] {
+        color: #000000 !important;
     }
-
-    /* Force Icon White */
+    
+    [data-testid="stSidebarCollapsedControl"] button, 
     [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="stSidebarCollapsedControl"] i {
-        fill: #ffffff !important;
-        stroke: #ffffff !important;
-        color: #ffffff !important;
+        color: #000000 !important;
+        fill: #000000 !important;
+        stroke: #000000 !important;
     }
 
     /* Hide Footer */
