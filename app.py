@@ -2,6 +2,7 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import io
 import os
+import base64
 from datetime import datetime, timedelta, timezone
 from PIL import Image
 
@@ -12,40 +13,50 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: V4.0 (NATIVE MODE - NO FORCED THEMES) ---
+# --- HELPER FUNCTION FOR THEME-AWARE LOGO ---
+def img_to_html(img_path, class_name):
+    if os.path.exists(img_path):
+        with open(img_path, "rb") as f:
+            data = f.read()
+            encoded = base64.b64encode(data).decode()
+        return f'<img src="data:image/png;base64,{encoded}" class="{class_name}">'
+    return ""
+
+# --- CSS: V4.1 (THEME AWARE LOGOS) ---
 st.markdown("""
     <style>
-    /* We REMOVED the forced :root variables and background colors.
-       Streamlit will now handle Dark/Light mode automatically.
-    */
-
-    /* 1. Sidebar Toggle Button Fix */
-    /* We make the button neutral so it is visible in both Dark & Light modes */
+    /* 1. Sidebar Toggle Button Neutral Style */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
         visibility: visible !important;
-        border: 1px solid rgba(128, 128, 128, 0.5) !important; /* Subtle grey border */
+        border: 1px solid rgba(128, 128, 128, 0.5) !important;
         border-radius: 8px !important;
         padding: 4px !important;
         margin-top: 10px !important;
         margin-left: 10px !important;
-        background-color: transparent !important; /* Let theme decide bg */
+        background-color: transparent !important;
     }
 
     /* 2. Download Button Styling */
-    /* We use 'inherit' so it adapts to dark/light text automatically */
     div.stDownloadButton > button {
         border: 1px solid rgba(128, 128, 128, 0.5) !important;
         width: 100%;
     }
 
-    /* 3. Hide ONLY the Decoration Line (Rainbow) */
-    [data-testid="stDecoration"] {
-        display: none !important;
-    }
-
-    /* 4. Hide Footer */
+    /* 3. Hide Decoration & Footer */
+    [data-testid="stDecoration"] { display: none !important; }
     footer {visibility: hidden;}
+
+    /* 4. THEME AWARE LOGO CSS */
+    /* By default (Light Mode), show the Light logo, hide the Dark logo */
+    .logo-light { display: block; width: 100%; margin-bottom: 20px; }
+    .logo-dark { display: none; width: 100%; margin-bottom: 20px; }
+
+    /* In Dark Mode, swap them */
+    @media (prefers-color-scheme: dark) {
+        .logo-light { display: none; }
+        .logo-dark { display: block; }
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -68,9 +79,14 @@ def calc_ask_psf():
 
 # --- SIDEBAR INPUTS ---
 with st.sidebar:
-    if os.path.exists("logo.png"):
-        st.image("logo.png", use_container_width=True)
+    # --- DYNAMIC LOGO SECTION ---
+    html_light = img_to_html("logo_light.png", "logo-light")
+    html_dark = img_to_html("logo_dark.png", "logo-dark")
+    st.markdown(html_light + html_dark, unsafe_allow_html=True)
     
+    if not html_light and not html_dark:
+        st.caption("⚠️ Upload 'logo_light.png' and 'logo_dark.png'")
+
     st.markdown("### Property Details")
     dev_name = st.text_input("Development / Address", "")
     unit_no  = st.text_input("Unit", "")
@@ -183,8 +199,7 @@ st.divider()
 fig = None
 
 if has_data:
-    # We explicitly set facecolor='white' so the chart looks like a document 
-    # regardless of whether the app is in Dark or Light mode.
+    # Explicitly set facecolor='white' (Paper look)
     fig, ax = plt.subplots(figsize=(12, 7), dpi=300)
     fig.patch.set_facecolor('white')
     
@@ -234,9 +249,16 @@ if has_data:
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.1f} PSF\n(${ask_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    if os.path.exists("logo.png"):
+    # --- SMARTER LOGO LOGIC FOR GRAPH ---
+    logo_to_use = None
+    if os.path.exists("logo_light.png"):
+        logo_to_use = "logo_light.png" # Priority 1: Dark text for white paper
+    elif os.path.exists("logo_dark.png"):
+        logo_to_use = "logo_dark.png"  # Priority 2: Better than nothing
+
+    if logo_to_use:
         try:
-            logo_img = Image.open("logo.png")
+            logo_img = Image.open(logo_to_use)
             logo_ax = fig.add_axes([0.75, 0.85, 0.15, 0.12]) 
             logo_ax.imshow(logo_img)
             logo_ax.axis('off')
