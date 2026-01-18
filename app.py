@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: V2.3 (SAFE & HIGH CONTRAST) ---
+# --- CSS: V2.4 (THE "GHOST BUTTON" FIX) ---
 st.markdown("""
     <style>
     /* 1. Main App Background -> White */
@@ -62,26 +62,45 @@ st.markdown("""
         border-bottom: 1px solid #e0e0e0;
     }
 
-    /* 6. SIDEBAR BUTTON FIX (The "White on White" Killer) */
+    /* 6. SIDEBAR BUTTON FIX V2.4 */
+    /* Create a visible GREY BOX for the button */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
-        color: #000000 !important;
-        background-color: white !important;
-        z-index: 100 !important;
+        visibility: visible !important;
+        background-color: #f0f2f6 !important; /* Grey background */
+        border: 1px solid #d1d5db !important; /* Visible border */
+        border-radius: 8px !important;
+        padding: 4px !important;
         
-        /* Add a border so you can see the box even if the icon is invisible */
-        border: 1px solid #e0e0e0;
-        border-radius: 8px;
-        margin-top: 5px;
-        margin-left: 5px;
+        /* Pin it so it doesn't get lost */
+        position: fixed !important;
+        top: 60px !important; /* Lowered slightly to avoid status bars */
+        left: 10px !important;
+        z-index: 1000001 !important;
+        width: 44px !important;
+        height: 44px !important;
     }
     
-    /* Force the actual SVG Arrow to be Black */
-    [data-testid="stSidebarCollapsedControl"] svg, 
-    [data-testid="stSidebarCollapsedControl"] i {
-        color: #000000 !important;
+    /* Force the inner button to fill the box */
+    [data-testid="stSidebarCollapsedControl"] button {
+        width: 100% !important;
+        height: 100% !important;
+        background-color: transparent !important;
+        border: none !important;
+    }
+
+    /* Force the SVG Icon to be BLACK (Overrides Dark Mode White) */
+    [data-testid="stSidebarCollapsedControl"] svg {
         fill: #000000 !important;
         stroke: #000000 !important;
+        color: #000000 !important;
+        width: 24px !important;
+        height: 24px !important;
+    }
+    
+    /* Fallback: If SVG fails, target the 'i' tag if Streamlit uses icons */
+    [data-testid="stSidebarCollapsedControl"] i {
+        color: #000000 !important;
     }
     
     /* Hide Footer */
