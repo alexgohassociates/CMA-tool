@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: PERFECT "CLEAN" THEME & EQUAL SPACING ---
+# --- CSS: SURGICAL HEADER FIX V2.1 ---
 st.markdown("""
     <style>
     /* 1. Main App Background -> White */
@@ -71,24 +71,38 @@ st.markdown("""
         margin-bottom: 1rem !important;
     }
 
-    /* 8. SURGICAL HEADER FIX (V2.0) */
+    /* --- HEADER & SIDEBAR BUTTON FIXES (V2.1) --- */
     
-    /* Hide the Streamlit Toolbar (Share, Edit, etc.) on the top right */
-    [data-testid="stToolbar"] {
-        visibility: hidden !important;
-        display: none !important;
-    }
-    
-    /* Hide the colorful decoration line at the top */
+    /* A. Hide the decoration rainbow line */
     [data-testid="stDecoration"] {
-        visibility: hidden !important;
-        display: none !important;
+        display: none;
     }
 
-    /* Ensure the Sidebar Toggle (Hamburger) is VISIBLE and BLACK */
+    /* B. Hide the top-right toolbar (Share, GitHub, etc.) */
+    [data-testid="stToolbar"] {
+        display: none;
+    }
+
+    /* C. Fix the Header Background (Removes the Black Bar) */
+    [data-testid="stHeader"] {
+        background-color: white !important;
+        border-bottom: 1px solid #e0e0e0; /* Optional: adds a subtle line */
+    }
+
+    /* D. Force the Sidebar Toggle Button to be Visible and Black */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
+        visibility: visible !important;
         color: #000000 !important;
+        z-index: 100000 !important; /* Force it to the very front */
+        left: 0.5rem !important; /* Ensure it's not hidden off-screen */
+        top: 0.5rem !important;
+    }
+    
+    /* E. Ensure the icon inside the button is also black */
+    [data-testid="stSidebarCollapsedControl"] button {
+        color: #000000 !important;
+        background-color: transparent !important;
     }
     
     /* Hide the footer */
