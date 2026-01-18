@@ -12,7 +12,7 @@ st.set_page_config(
     initial_sidebar_state="expanded" 
 )
 
-# --- CSS: V2.4 (THE "GHOST BUTTON" FIX) ---
+# --- CSS: V2.5 (HIGH CONTRAST BLACK BUTTON) ---
 st.markdown("""
     <style>
     /* 1. Main App Background -> White */
@@ -30,7 +30,7 @@ st.markdown("""
         border-right: 1px solid #e0e0e0;
     }
 
-    /* 4. Inputs -> Light Grey */
+    /* 4. Sidebar Inputs */
     [data-testid="stSidebar"] .stTextInput input, 
     [data-testid="stSidebar"] .stNumberInput input {
         color: #000000 !important;
@@ -50,59 +50,51 @@ st.markdown("""
         width: 100%;
     }
 
-    /* 5. Header Cleanup */
-    /* Hide Decoration & Toolbar */
+    /* 5. Header Management */
+    /* Hide the decoration line and toolbar (share buttons) */
     [data-testid="stDecoration"], [data-testid="stToolbar"] {
         display: none !important;
     }
 
-    /* Force Header Background to White */
+    /* Force Header to be visible but White */
     [data-testid="stHeader"] {
         background-color: white !important;
         border-bottom: 1px solid #e0e0e0;
+        z-index: 10 !important;
     }
 
-    /* 6. SIDEBAR BUTTON FIX V2.4 */
-    /* Create a visible GREY BOX for the button */
+    /* 6. THE BLACK BUTTON FIX */
+    /* Target the container for the sidebar toggle */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
         visibility: visible !important;
-        background-color: #f0f2f6 !important; /* Grey background */
-        border: 1px solid #d1d5db !important; /* Visible border */
+        z-index: 999999 !important; /* Sit on top of everything */
+        
+        /* Make it a visible BLACK box/circle */
+        background-color: #000000 !important;
         border-radius: 8px !important;
         padding: 4px !important;
         
-        /* Pin it so it doesn't get lost */
-        position: fixed !important;
-        top: 60px !important; /* Lowered slightly to avoid status bars */
-        left: 10px !important;
-        z-index: 1000001 !important;
-        width: 44px !important;
-        height: 44px !important;
+        /* Position adjustment */
+        margin-top: 10px !important;
+        margin-left: 10px !important;
     }
     
-    /* Force the inner button to fill the box */
+    /* Force the button inside to use the full space */
     [data-testid="stSidebarCollapsedControl"] button {
-        width: 100% !important;
-        height: 100% !important;
-        background-color: transparent !important;
         border: none !important;
+        background: transparent !important;
+        color: white !important;
     }
 
-    /* Force the SVG Icon to be BLACK (Overrides Dark Mode White) */
-    [data-testid="stSidebarCollapsedControl"] svg {
-        fill: #000000 !important;
-        stroke: #000000 !important;
-        color: #000000 !important;
-        width: 24px !important;
-        height: 24px !important;
-    }
-    
-    /* Fallback: If SVG fails, target the 'i' tag if Streamlit uses icons */
+    /* Force the Icon (SVG) to be WHITE so it contrasts against the Black Box */
+    [data-testid="stSidebarCollapsedControl"] svg,
     [data-testid="stSidebarCollapsedControl"] i {
-        color: #000000 !important;
+        fill: #ffffff !important;
+        stroke: #ffffff !important;
+        color: #ffffff !important;
     }
-    
+
     /* Hide Footer */
     footer {visibility: hidden;}
     </style>
