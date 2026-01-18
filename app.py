@@ -5,8 +5,12 @@ import os
 from datetime import datetime, timedelta, timezone
 from PIL import Image
 
-# 1. Page Configuration - RENAMED TO CMA TOOL
-st.set_page_config(page_title="CMA Tool", layout="wide")
+# 1. Page Configuration
+st.set_page_config(
+    page_title="CMA Tool", 
+    layout="wide",
+    initial_sidebar_state="expanded" 
+)
 
 # --- CSS: PERFECT "CLEAN" THEME & EQUAL SPACING ---
 st.markdown("""
@@ -67,8 +71,17 @@ st.markdown("""
         margin-bottom: 1rem !important;
     }
 
-    /* Hide Streamlit Header/Footer */
-    header, footer {visibility: hidden;}
+    /* 8. SIDEBAR TOGGLE BUTTON VISIBILITY FIX */
+    /* Force the sidebar toggle (hamburger/arrow) to be visible and black */
+    [data-testid="stSidebarCollapsedControl"] {
+        display: block !important;
+        color: #000000 !important;
+    }
+    [data-testid="stSidebarCollapsedControl"] button {
+        color: #000000 !important;
+    }
+    /* Only hide the footer (Made with Streamlit), keep header visible for the button */
+    footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
 
