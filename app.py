@@ -71,16 +71,27 @@ st.markdown("""
         margin-bottom: 1rem !important;
     }
 
-    /* 8. SIDEBAR TOGGLE BUTTON VISIBILITY FIX */
-    /* Force the sidebar toggle (hamburger/arrow) to be visible and black */
+    /* 8. SURGICAL HEADER FIX (V2.0) */
+    
+    /* Hide the Streamlit Toolbar (Share, Edit, etc.) on the top right */
+    [data-testid="stToolbar"] {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    
+    /* Hide the colorful decoration line at the top */
+    [data-testid="stDecoration"] {
+        visibility: hidden !important;
+        display: none !important;
+    }
+
+    /* Ensure the Sidebar Toggle (Hamburger) is VISIBLE and BLACK */
     [data-testid="stSidebarCollapsedControl"] {
         display: block !important;
         color: #000000 !important;
     }
-    [data-testid="stSidebarCollapsedControl"] button {
-        color: #000000 !important;
-    }
-    /* Only hide the footer (Made with Streamlit), keep header visible for the button */
+    
+    /* Hide the footer */
     footer {visibility: hidden;}
     </style>
     """, unsafe_allow_html=True)
