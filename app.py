@@ -30,7 +30,7 @@ st.markdown("""
         border-right: 1px solid #e0e0e0;
     }
 
-    /* 4. Sidebar Inputs */
+    /* 4. Inputs -> Light Grey */
     [data-testid="stSidebar"] .stTextInput input, 
     [data-testid="stSidebar"] .stNumberInput input {
         color: #000000 !important;
@@ -51,7 +51,7 @@ st.markdown("""
     }
 
     /* 5. Header Management */
-    /* Hide the decoration line and toolbar (share buttons) */
+    /* Hide Decoration & Toolbar */
     [data-testid="stDecoration"], [data-testid="stToolbar"] {
         display: none !important;
     }
@@ -132,7 +132,6 @@ with st.sidebar:
     st.markdown("---")
     
     st.markdown("### Market Data (PSF)")
-    # UPDATED: step=0.1 and format="%.1f" to allow decimals (e.g. 8.3)
     t1 = st.number_input("Lowest Transacted (PSF)", value=None, step=0.1, format="%.1f")
     t2 = st.number_input("Highest Transacted (PSF)", value=None, step=0.1, format="%.1f")
     
@@ -154,14 +153,12 @@ with st.sidebar:
     
     c_fmv1, c_fmv2 = st.columns(2)
     with c_fmv1:
-        # UPDATED: step=0.1 and format="%.1f" for FMV PSF
         st.number_input("FMV (PSF)", value=None, step=0.1, format="%.1f", key="fmv_psf", on_change=calc_fmv_quantum)
     with c_fmv2:
         st.number_input("FMV (Quantum)", value=None, step=1000.0, key="fmv_quantum", on_change=calc_fmv_psf)
 
     c_ask1, c_ask2 = st.columns(2)
     with c_ask1:
-        # UPDATED: step=0.1 and format="%.1f" for Ask PSF
         st.number_input("Ask (PSF)", value=None, step=0.1, format="%.1f", key="ask_psf", on_change=calc_ask_quantum)
     with c_ask2:
         st.number_input("Ask (Quantum)", value=None, step=1000.0, key="ask_quantum", on_change=calc_ask_psf)
@@ -220,8 +217,8 @@ st.title(f"{display_dev_name}")
 st.caption(f"Unit: {display_unit_no} | Size: {display_sqft} sqft | Type: {display_u_type}")
 
 c1, c2, c3 = st.columns(3)
-# Update Metrics to show decimals if needed, or keep standard integer formatting for display
-c1.metric("FMV (PSF)", f"${fmv:,.2f} psf" if has_data else "-") # Changed to 2 decimal places for better precision in display
+# Update Metrics to show 2 decimal places for PSF
+c1.metric("FMV (PSF)", f"${fmv:,.2f} psf" if has_data else "-")
 c2.metric("Asking (PSF)", f"${our_ask:,.2f} psf" if has_data else "-")
 if has_data:
     c3.metric("Variance", f"{diff_pct:+.1%}", delta_color="inverse")
@@ -262,20 +259,19 @@ if has_data:
     y_labels_10 = -7.0 
     style_dict = dict(ha='center', va='top', fontsize=10, weight='bold', color='#95a5a6')
     
-    # Updated chart labels to show 2 decimal places or 0 depending on preference.
-    # Since inputs are 1 decimal, showing 0 decimals (integer) might round weirdly. 
-    # Let's use :,.0f (integer) for chart labels to keep it clean, unless you want decimals there too.
-    # Keeping clean integer for chart labels for now.
-    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.0f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
-    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.0f} PSF\n(${upper_10_quant:,.0f})", **style_dict)
+    # UPDATED: Changed from :,.0f to :,.2f for PSF values
+    ax.text(upper_5, y_labels_5, f"+5%\n${upper_5:,.2f} PSF\n(${upper_5_quant:,.0f})", **style_dict)
+    ax.text(upper_10, y_labels_10, f"+10%\n${upper_10:,.2f} PSF\n(${upper_10_quant:,.0f})", **style_dict)
 
     ax.plot([t_low, t_high], [2, 2], color='#3498db', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    ax.text(t_low, 2.45, f"${t_low:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
-    ax.text(t_high, 2.45, f"${t_high:,.0f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    # UPDATED: Changed from :,.0f to :,.2f for Transacted
+    ax.text(t_low, 2.45, f"${t_low:,.2f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
+    ax.text(t_high, 2.45, f"${t_high:,.2f} PSF", ha='center', va='bottom', fontsize=10, weight='bold', color='#3498db')
 
     ax.plot([a_low, a_high], [1, 1], color='#34495e', marker='o', markersize=7, linewidth=5, solid_capstyle='round')
-    ax.text(a_low, 0.55, f"${a_low:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
-    ax.text(a_high, 0.55, f"${a_high:,.0f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    # UPDATED: Changed from :,.0f to :,.2f for Asking Range
+    ax.text(a_low, 0.55, f"${a_low:,.2f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
+    ax.text(a_high, 0.55, f"${a_high:,.2f} PSF", ha='center', va='top', fontsize=10, weight='bold', color='#34495e')
 
     text_x_pos = data_min - (data_range * 0.05) 
     ax.text(text_x_pos, 2, 'RECENT TRANSACTED', weight='bold', ha='right', va='center', fontsize=12, color='#3498db')
@@ -283,12 +279,14 @@ if has_data:
 
     ax.vlines(fmv, 2, -1.3, linestyles='dotted', colors='black', linewidth=2, zorder=5)
     ax.scatter(fmv, 2, color='black', s=100, zorder=10, marker='D')
-    ax.text(fmv, -1.5, f"FMV\n${fmv:,.0f} PSF\n(${fmv_quant:,.0f})", 
+    # UPDATED: Changed from :,.0f to :,.2f for FMV
+    ax.text(fmv, -1.5, f"FMV\n${fmv:,.2f} PSF\n(${fmv_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     ax.vlines(our_ask, 1, -2.8, linestyles='dotted', colors=status_color, linewidth=2, zorder=5)
     ax.scatter(our_ask, 1, color=status_color, s=180, edgecolors='black', zorder=11, linewidth=2)
-    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.0f} PSF\n(${ask_quant:,.0f})", 
+    # UPDATED: Changed from :,.0f to :,.2f for Our Asking
+    ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.2f} PSF\n(${ask_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
     if os.path.exists("logo.png"):
