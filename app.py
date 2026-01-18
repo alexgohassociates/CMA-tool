@@ -48,11 +48,9 @@ st.markdown("""
     footer {visibility: hidden;}
 
     /* 4. THEME AWARE LOGO CSS */
-    /* By default (Light Mode), show the Light logo, hide the Dark logo */
     .logo-light { display: block; width: 100%; margin-bottom: 20px; }
     .logo-dark { display: none; width: 100%; margin-bottom: 20px; }
 
-    /* In Dark Mode, swap them */
     @media (prefers-color-scheme: dark) {
         .logo-light { display: none; }
         .logo-dark { display: block; }
@@ -115,6 +113,9 @@ with st.sidebar:
     
     st.markdown("---")
     st.markdown("### Valuation & Price")
+    
+    # NEW INSTRUCTION / TIP
+    st.caption("💡 **Tip:** Enter either **PSF** or **Quantum**. The other will auto-calculate based on size.")
     
     c_fmv1, c_fmv2 = st.columns(2)
     with c_fmv1:
@@ -199,7 +200,6 @@ st.divider()
 fig = None
 
 if has_data:
-    # Explicitly set facecolor='white' (Paper look)
     fig, ax = plt.subplots(figsize=(12, 7), dpi=300)
     fig.patch.set_facecolor('white')
     
@@ -249,12 +249,12 @@ if has_data:
     ax.text(our_ask, -3.0, f"ASKING\n${our_ask:,.1f} PSF\n(${ask_quant:,.0f})", 
             ha="center", va="top", weight="bold", fontsize=11, color='black')
 
-    # --- SMARTER LOGO LOGIC FOR GRAPH ---
+    # LOGO LOGIC FOR GRAPH (Smart Fallback)
     logo_to_use = None
     if os.path.exists("logo_light.png"):
-        logo_to_use = "logo_light.png" # Priority 1: Dark text for white paper
+        logo_to_use = "logo_light.png"
     elif os.path.exists("logo_dark.png"):
-        logo_to_use = "logo_dark.png"  # Priority 2: Better than nothing
+        logo_to_use = "logo_dark.png"
 
     if logo_to_use:
         try:
